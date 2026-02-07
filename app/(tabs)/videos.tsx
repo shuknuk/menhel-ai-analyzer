@@ -70,11 +70,11 @@ export default function VideosScreen() {
             borderRadius: BorderRadius.xl,
             padding: Spacing.lg,
             borderWidth: 1,
-            borderColor: theme.background.tertiary,
+            borderColor: theme.accent.tertiary,
         },
         exerciseItem: {
             backgroundColor: theme.background.primary,
-            borderColor: theme.background.tertiary,
+            borderColor: theme.accent.tertiary,
         }
     });
 
@@ -125,13 +125,13 @@ export default function VideosScreen() {
 
                 {/* Video Categories */}
                 <View style={styles.sectionHeader}>
-                    <Text style={[styles.sectionTitle, { color: theme.text.secondary }]}>RECOVERY LIBRARY</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.accent.secondary }]}>RECOVERY LIBRARY</Text>
                 </View>
 
                 {VIDEOS.map((item, index) => (
                     <Animated.View key={item.id} entering={FadeInDown.delay(300 + index * 100)}>
                         <TouchableOpacity
-                            style={[styles.videoCard, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]}
+                            style={[styles.videoCard, { backgroundColor: theme.background.secondary, borderColor: theme.accent.tertiary }]}
                             onPress={() => setSelectedVideo(item)}
                         >
                             <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />

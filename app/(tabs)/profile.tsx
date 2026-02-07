@@ -45,7 +45,7 @@ export default function ProfileScreen() {
             color: theme.text.primary,
         },
         sectionTitle: {
-            color: theme.text.primary,
+            color: theme.accent.secondary,
         },
         settingLabel: {
             color: theme.text.primary,

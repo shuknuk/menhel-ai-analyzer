@@ -35,7 +35,7 @@ export default function HealthHomeScreen() {
             color: theme.text.primary,
         },
         sectionTitle: {
-            color: theme.text.primary,
+            color: theme.accent.secondary,
             ...Typography.h3,
             marginBottom: Spacing.md,
         },
@@ -91,7 +91,7 @@ export default function HealthHomeScreen() {
                                             styles.moodCard,
                                             {
                                                 backgroundColor: isSelected ? theme.accent.primary : theme.background.secondary,
-                                                borderColor: isSelected ? theme.accent.primary : theme.background.tertiary
+                                                borderColor: isSelected ? theme.accent.primary : theme.accent.tertiary
                                             }
                                         ]}
                                         onPress={() => setSelectedMood(mood.label)}
@@ -151,7 +151,7 @@ export default function HealthHomeScreen() {
                     <Animated.View entering={FadeInDown.delay(700)} style={{ marginTop: Spacing.xl }}>
                         <Text style={dynamicStyles.sectionTitle}>Recovery Focus</Text>
                         <TouchableOpacity
-                            style={[styles.recoveryCard, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]}
+                            style={[styles.recoveryCard, { backgroundColor: theme.background.secondary, borderColor: theme.accent.tertiary }]}
                             onPress={() => router.push('/videos')}
                         >
                             <View style={styles.recoveryInfo}>

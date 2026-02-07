@@ -79,7 +79,7 @@ export default function StatsScreen() {
                 </Animated.View>
 
                 {/* Intensity Trends */}
-                <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Workout Volume (kg)</Text>
+                <Text style={[styles.sectionTitle, { color: theme.accent.secondary }]}>Workout Volume (kg)</Text>
                 <GlassCard style={styles.graphCard}>
                     <TrendGraph
                         title="Peak Relative Volume"
@@ -92,7 +92,7 @@ export default function StatsScreen() {
                 </GlassCard>
 
                 {/* Recovery Trends */}
-                <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Wellness Correlation</Text>
+                <Text style={[styles.sectionTitle, { color: theme.accent.secondary }]}>Wellness Correlation</Text>
                 <GlassCard style={styles.graphCard}>
                     <TrendGraph
                         title="Recovery vs Mood"
@@ -105,7 +105,7 @@ export default function StatsScreen() {
                 </GlassCard>
 
                 {/* Journal History */}
-                <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Recent Insights</Text>
+                <Text style={[styles.sectionTitle, { color: theme.accent.secondary }]}>Recent Insights</Text>
                 {MOCK_JOURNAL.map((entry) => (
                     <GlassCard key={entry.id} style={styles.journalCard}>
                         <View style={styles.journalHeader}>

@@ -111,7 +111,7 @@ export default function BodyScreen() {
         },
         statusBadge: {
             backgroundColor: theme.background.primary,
-            borderColor: theme.background.tertiary,
+            borderColor: theme.accent.tertiary,
         },
         statusText: {
             color: theme.text.secondary,
@@ -122,10 +122,11 @@ export default function BodyScreen() {
         },
         statCard: {
             backgroundColor: theme.background.primary,
-            borderColor: theme.background.tertiary,
+            borderColor: theme.accent.tertiary,
+            borderWidth: 1,
         },
         statLabel: {
-            color: theme.text.muted,
+            color: theme.accent.secondary,
         },
         statValue: {
             color: theme.text.primary,
@@ -187,7 +188,7 @@ export default function BodyScreen() {
 
     return (
         <SafeAreaView style={[styles.mainContainer, dynamicStyles.container]}>
-            <View style={[styles.header, dynamicStyles.header, { borderBottomColor: theme.background.tertiary }]}>
+            <View style={[styles.header, dynamicStyles.header, { borderBottomColor: theme.accent.tertiary }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <ChevronLeft size={24} color={theme.text.primary} />
                 </TouchableOpacity>
@@ -394,7 +395,7 @@ const styles = StyleSheet.create({
     },
     controls: {
         padding: Spacing.lg,
-        paddingBottom: 100, // Clear tab bar
+        paddingBottom: 120, // Clear tab bar explicitly
         borderTopWidth: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',

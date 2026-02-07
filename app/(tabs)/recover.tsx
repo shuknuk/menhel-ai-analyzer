@@ -26,7 +26,7 @@ const WORKOUTS = [
 export default function RecoverScreen() {
     const { theme, isDark } = useTheme();
     const router = useRouter();
-    const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+    const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
     const filteredWorkouts = WORKOUTS.filter(workout =>
@@ -39,40 +39,52 @@ export default function RecoverScreen() {
             backgroundColor: theme.background.primary,
         },
         headerTitle: {
-            color: theme.text.primary,
+            color: theme.accent.secondary,
+        },
+        headerSubtitle: {
+            color: theme.text.muted,
         },
         searchBar: {
             backgroundColor: theme.background.secondary,
-            borderColor: theme.background.tertiary,
+            borderColor: theme.accent.tertiary,
         },
         searchInput: {
             color: theme.text.primary,
         },
         insightLabel: {
-            color: theme.accent.primary,
+            color: theme.accent.secondary,
         },
         insightTitle: {
-            color: theme.text.primary,
+            color: theme.accent.secondary,
         },
-        insightDesc: {
-            color: theme.text.secondary,
+        insightBlur: {
+            borderColor: theme.accent.tertiary,
         },
-        workoutCard: {
-            backgroundColor: theme.background.secondary,
+        cardContainer: {
+            backgroundColor: theme.background.tertiary,
+            borderColor: theme.accent.tertiary,
+        },
+        cardMeta: {
+            color: 'rgba(255, 255, 255, 0.9)',
         },
         modalContent: {
             backgroundColor: theme.background.secondary,
+            borderColor: theme.accent.tertiary,
         },
         modalTitle: {
-            color: theme.text.primary,
+            color: theme.accent.secondary,
         },
-        modalDesc: {
+        modalDescription: {
             color: theme.text.secondary,
         },
-        startButtonText: {
-            ...Typography.h3,
-            fontSize: 16,
-            color: theme.text.inverse,
+        tag: {
+            backgroundColor: theme.background.tertiary,
+        },
+        tagText: {
+            color: theme.text.secondary,
+        },
+        closeButtonBlur: {
+            backgroundColor: isDark ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)',
         },
     });
 
@@ -103,6 +115,7 @@ export default function RecoverScreen() {
             >
                 <Animated.View entering={FadeIn.duration(600)}>
                     <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>Recovery</Text>
+                    <Text style={[styles.headerSubtitle, dynamicStyles.headerSubtitle]}>Smart Exercises & Rehabilitation</Text>
                 </Animated.View>
 
                 {/* Search Bar */}
@@ -125,10 +138,10 @@ export default function RecoverScreen() {
 
                 {/* Journal Insight Card */}
                 <Animated.View entering={FadeInDown.delay(200)} style={styles.insightCard}>
-                    <BlurView intensity={30} style={styles.insightBlur}>
+                    <BlurView intensity={30} style={[styles.insightBlur, dynamicStyles.insightBlur]}>
                         <View style={styles.insightHeader}>
                             <BookOpen size={20} color={theme.accent.secondary} />
-                            <Text style={[styles.insightLabel, { color: theme.accent.secondary }]}>AI JOURNAL INSIGHT</Text>
+                            <Text style={[styles.insightLabel, dynamicStyles.insightLabel]}>AI JOURNAL INSIGHT</Text>
                         </View>
                         <Text style={[styles.insightTitle, dynamicStyles.insightTitle]}>Recovery focus: Knee Health</Text>
                         <Text style={[styles.insightDesc, { color: isDark ? 'rgba(255,255,255,0.7)' : theme.text.secondary }]}>
@@ -150,7 +163,7 @@ export default function RecoverScreen() {
                                 style={styles.gridItem}
                             >
                                 <TouchableOpacity onPress={() => handleOpenModal(workout)} activeOpacity={0.9}>
-                                    <View style={styles.cardContainer}>
+                                    <View style={[styles.cardContainer, dynamicStyles.cardContainer]}>
                                         <Image source={{ uri: workout.image }} style={styles.cardImage} />
                                         <View style={styles.cardOverlay} />
                                         <View style={styles.cardContent}>
@@ -159,7 +172,7 @@ export default function RecoverScreen() {
                                             </View>
                                             <View>
                                                 <Text style={[styles.cardTitle, { color: '#fff' }]}>{workout.title}</Text>
-                                                <Text style={[styles.cardMeta, { color: 'rgba(255,255,255,0.8)' }]}>{workout.duration} • {workout.level}</Text>
+                                                <Text style={[styles.cardMeta, dynamicStyles.cardMeta]}>{workout.duration} • {workout.level}</Text>
                                             </View>
                                         </View>
                                     </View>
@@ -200,7 +213,7 @@ export default function RecoverScreen() {
                             <>
                                 <Image source={{ uri: selectedWorkout.image }} style={styles.modalImage} />
                                 <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
-                                    <View style={styles.closeButtonBlur}>
+                                    <View style={[styles.closeButtonBlur, dynamicStyles.closeButtonBlur]}>
                                         <X color={theme.text.primary} size={20} />
                                     </View>
                                 </TouchableOpacity>
@@ -208,20 +221,20 @@ export default function RecoverScreen() {
                                 <View style={styles.modalBody}>
                                     <Text style={[styles.modalTitle, dynamicStyles.modalTitle]}>{selectedWorkout.title}</Text>
                                     <View style={styles.tagContainer}>
-                                        <View style={styles.tag}>
-                                            <Text style={styles.tagText}>{selectedWorkout.level}</Text>
+                                        <View style={[styles.tag, dynamicStyles.tag]}>
+                                            <Text style={[styles.tagText, dynamicStyles.tagText]}>{selectedWorkout.level}</Text>
                                         </View>
-                                        <View style={styles.tag}>
-                                            <Text style={styles.tagText}>{selectedWorkout.duration}</Text>
+                                        <View style={[styles.tag, dynamicStyles.tag]}>
+                                            <Text style={[styles.tagText, dynamicStyles.tagText]}>{selectedWorkout.duration}</Text>
                                         </View>
                                         {selectedWorkout.tags?.map((tag: string) => (
-                                            <View key={tag} style={[styles.tag, { backgroundColor: theme.accent.primary + '20' }]}>
-                                                <Text style={[styles.tagText, { color: theme.accent.primary }]}>#{tag}</Text>
+                                            <View key={tag} style={[styles.tag, dynamicStyles.tag, { backgroundColor: theme.accent.primary + '20' }]}>
+                                                <Text style={[styles.tagText, dynamicStyles.tagText, { color: theme.accent.primary }]}>#{tag}</Text>
                                             </View>
                                         ))}
                                     </View>
 
-                                    <Text style={[styles.modalDescription, dynamicStyles.modalDesc]}>
+                                    <Text style={[styles.modalDescription, dynamicStyles.modalDescription]}>
                                         This guided session focuses on {selectedWorkout.title.toLowerCase()}.
                                         The smart camera will track your form in real-time to ensure safety and effectiveness.
                                     </Text>
@@ -231,7 +244,7 @@ export default function RecoverScreen() {
                                         onPress={handleStartSession}
                                         activeOpacity={0.8}
                                     >
-                                        <Text style={styles.startButtonText}>Start Session</Text>
+                                        <Text style={[styles.startButtonText, { color: theme.text.inverse }]}>Start Session</Text>
                                         <Play size={20} color={theme.text.inverse} fill={theme.text.inverse} />
                                     </TouchableOpacity>
                                 </View>
@@ -256,12 +269,11 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         ...Typography.h1,
-        marginBottom: Spacing.lg,
+        marginBottom: Spacing.sm,
     },
     headerSubtitle: {
         ...Typography.body,
-        color: 'rgba(255,255,255,0.8)',
-        marginBottom: Spacing.xl,
+        marginBottom: Spacing.lg,
     },
     searchBar: {
         flexDirection: 'row',
@@ -289,7 +301,7 @@ const styles = StyleSheet.create({
         height: 200,
         borderRadius: BorderRadius.lg,
         overflow: 'hidden',
-        backgroundColor: '#333',
+        borderWidth: 1,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
@@ -302,7 +314,7 @@ const styles = StyleSheet.create({
     },
     cardOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        backgroundColor: 'rgba(0,0,0,0.4)',
     },
     cardContent: {
         position: 'absolute',
@@ -324,13 +336,11 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         ...Typography.h3,
-        color: '#fff',
         fontSize: 16,
         marginBottom: 4,
     },
     cardMeta: {
         ...Typography.small,
-        color: 'rgba(255,255,255,0.8)',
     },
     modalContainer: {
         flex: 1,
@@ -342,6 +352,7 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: BorderRadius.xl,
         overflow: 'hidden',
+        borderWidth: 1,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.2,
@@ -365,7 +376,6 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(255,255,255,0.8)',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -377,21 +387,19 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: Spacing.sm,
         marginBottom: Spacing.md,
+        flexWrap: 'wrap',
     },
     tag: {
-        backgroundColor: '#444',
         paddingHorizontal: Spacing.sm,
         paddingVertical: 4,
         borderRadius: BorderRadius.sm,
     },
     tagText: {
         ...Typography.small,
-        color: '#ccc',
         fontWeight: '600',
     },
     modalDescription: {
         ...Typography.body,
-        color: '#ccc',
         marginBottom: Spacing.xl,
     },
     startButton: {
@@ -417,7 +425,6 @@ const styles = StyleSheet.create({
     insightBlur: {
         padding: Spacing.lg,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
         borderRadius: BorderRadius.xl,
     },
     insightHeader: {

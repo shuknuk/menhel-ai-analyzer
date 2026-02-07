@@ -2,8 +2,9 @@
  * Profile Screen - Settings and User Info
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, Switch, TouchableOpacity, Image, SafeAreaView, TextInput, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight, Shield, Bell, Lock, LogOut, Moon, Sun, Monitor, User, Edit2, Check } from 'lucide-react-native';
 import { GlassCard } from '../../components/GlassCard';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
@@ -15,6 +16,17 @@ export default function ProfileScreen() {
     const { theme, mode, setMode } = useTheme();
     const [name, setName] = React.useState('Alex Johnson');
     const [isEditingName, setIsEditingName] = React.useState(false);
+
+    useEffect(() => {
+        AsyncStorage.getItem('userName').then((savedName) => {
+            if (savedName) setName(savedName);
+        });
+    }, []);
+
+    const saveName = () => {
+        setIsEditingName(false);
+        AsyncStorage.setItem('userName', name);
+    };
 
     const THEME_OPTIONS = [
         { id: 'system', label: 'System', icon: Monitor },
@@ -65,9 +77,9 @@ export default function ProfileScreen() {
                                         value={name}
                                         onChangeText={setName}
                                         autoFocus
-                                        onBlur={() => setIsEditingName(false)}
+                                        onBlur={saveName}
                                         returnKeyType="done"
-                                        onSubmitEditing={() => setIsEditingName(false)}
+                                        onSubmitEditing={saveName}
                                     />
                                 ) : (
                                     <Text style={[styles.userName, dynamicStyles.userName]}>{name}</Text>

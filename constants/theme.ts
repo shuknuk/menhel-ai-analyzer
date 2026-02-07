@@ -10,9 +10,10 @@ export const LightColors = {
         tertiary: '#E9EDC9', // Muted sage from palette
     },
     accent: {
-        primary: '#606C38', // Dark Olive
-        secondary: '#283618', // Deep Forest
-        teal: '#869042', // Olive
+        primary: '#636B2F', // Figma primary/base
+        secondary: '#BAC095', // Figma secondary/base
+        tertiary: '#D4DE95', // Figma tertiary/base
+        teal: '#869042', // Olive (Figma primary/300)
         orange: '#D4A373', // Earth Tone
         red: '#BC4749',
     },
@@ -28,6 +29,12 @@ export const LightColors = {
         error: '#EF4444',
         info: '#3B82F6',
     },
+    moods: {
+        down: '#707459', // secondary/400
+        okay: '#A5AF71', // quaternary/300
+        good: '#869042', // primary/300
+        great: '#D1E16A', // primary/100
+    }
 };
 
 export const DarkColors = {
@@ -55,6 +62,12 @@ export const DarkColors = {
         error: '#FF6B6B',
         info: '#72EFDD',
     },
+    moods: {
+        down: '#707459',
+        okay: '#A5AF71',
+        good: '#869042',
+        great: '#D1E16A',
+    }
 };
 
 export const Colors = LightColors; // Legacy support will be removed eventually

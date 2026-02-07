@@ -98,3 +98,22 @@ export interface FormCorrection {
     message: string;        // Renamed from issue
     severity: 'low' | 'medium' | 'high';
 }
+
+export interface Video {
+    id: string;
+    title: string;
+    duration: string;
+    difficulty: string;
+    tag: string;
+    thumbnail: string;
+    exercises: string[];
+}
+
+export interface Workout {
+    id: string;
+    title: string;
+    duration: string;
+    level: string;
+    tags: string[];
+    image: string;
+}

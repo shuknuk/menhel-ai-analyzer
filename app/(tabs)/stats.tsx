@@ -20,6 +20,7 @@ const MOCK_JOURNAL: JournalEntry[] = [
 
 const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const MONTH_LABELS = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+const RANGES: ('week' | 'month')[] = ['week', 'month'];
 
 export default function StatsScreen() {
     const { theme } = useTheme();
@@ -57,10 +58,10 @@ export default function StatsScreen() {
                     </View>
 
                     <View style={[styles.rangeSelector, { backgroundColor: theme.background.secondary }]}>
-                        {['week', 'month'].map((opt) => (
+                        {RANGES.map((opt) => (
                             <TouchableOpacity
                                 key={opt}
-                                onPress={() => setRange(opt as any)}
+                                onPress={() => setRange(opt)}
                                 style={[
                                     styles.rangeBtn,
                                     range === opt && { backgroundColor: theme.accent.primary }

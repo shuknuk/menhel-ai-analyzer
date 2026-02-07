@@ -6,8 +6,9 @@ import { useRouter } from 'expo-router';
 import { GlassCard } from '../../components/GlassCard';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../hooks/useTheme';
+import type { Video as VideoType } from '../../types/health';
 
-const VIDEOS = [
+const VIDEOS: VideoType[] = [
     {
         id: '1',
         title: 'Hip Mobility Flow',
@@ -40,7 +41,7 @@ const VIDEOS = [
 export default function VideosScreen() {
     const { theme, isDark } = useTheme();
     const router = useRouter();
-    const [selectedVideo, setSelectedVideo] = useState<any>(null);
+    const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
 
     const dynamicStyles = StyleSheet.create({
         container: { backgroundColor: theme.background.primary },

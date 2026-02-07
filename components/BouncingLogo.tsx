@@ -16,7 +16,7 @@ interface BouncingLogoProps {
 
 export const BouncingLogo: React.FC<BouncingLogoProps> = ({
     size = 40,
-    color = '#606C38'
+    color = '#636B2F' // Theme accent primary
 }) => {
     const translateY = useSharedValue(0);
     const scaleY = useSharedValue(1);

@@ -5,7 +5,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, Image, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ChevronLeft, Info, Camera, Zap, Video, Activity, Target } from 'lucide-react-native';
 import { GlassCard } from '../../components/GlassCard';
@@ -89,6 +89,7 @@ export default function BodyScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
     const exerciseName = params.exercise || 'Squat';
+    const exerciseNameStr = (Array.isArray(exerciseName) ? exerciseName[0] : exerciseName) || 'Squat';
     const webViewRef = useRef<WebView>(null);
     const [webviewLoaded, setWebviewLoaded] = useState(false);
     const [formAlerts, setFormAlerts] = useState<FormCorrection[]>([]);
@@ -134,7 +135,7 @@ export default function BodyScreen() {
         },
     });
 
-    const handleWebViewMessage = (event: any) => {
+    const handleWebViewMessage = (event: WebViewMessageEvent) => {
         try {
             const message = JSON.parse(event.nativeEvent.data);
 
@@ -144,21 +145,33 @@ export default function BodyScreen() {
 
             if (message.type === 'landmarks') {
                 // Mock logic for demo purposes
-                // Simulate squat depth based on some logic
+                const isSquat = exerciseNameStr.toLowerCase().includes('squat');
                 const depth = Math.floor(Math.random() * 100);
-                setSquatDepth(depth);
 
-                if (depth > 80 && Math.random() > 0.95) {
-                    setReps(r => r + 1);
-                    setStatus('Excellent depth!');
-                    setTimeout(() => setStatus('Go again!'), 2000);
+                if (isSquat) {
+                    setSquatDepth(depth);
+                    if (depth > 80 && Math.random() > 0.95) {
+                        setReps(r => r + 1);
+                        setStatus('Excellent depth!');
+                        setTimeout(() => setStatus('Go again!'), 2000);
+                    }
+                } else {
+                    // Mobility/Flow handling
+                    setSquatDepth(depth); // Reusing depth bar for "Range of Motion"
+                    if (depth > 70 && Math.random() > 0.98) {
+                        setReps(r => r + 1);
+                        setStatus('Great stretch holding...');
+                        setTimeout(() => setStatus('Switching side soon'), 3000);
+                    }
                 }
 
                 if (Math.random() > 0.99) {
                     setFormAlerts([{
                         id: Date.now().toString(),
-                        joint: 'knee',
-                        message: "Keep your knees aligned over toes",
+                        joint: isSquat ? 'knee' : 'posture',
+                        message: isSquat
+                            ? "Keep your knees aligned over toes"
+                            : "Keep your spine neutral during flow",
                         severity: 'medium',
                         timestamp: new Date()
                     }]);
@@ -170,24 +183,10 @@ export default function BodyScreen() {
         }
     };
 
-    if (!webviewLoaded) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={theme.accent.primary} />
-                <Text style={styles.loadingText}>Initializing Rebound Trainer...</Text>
-                <View style={{ height: 0, width: 0, overflow: 'hidden' }}>
-                    <WebView
-                        ref={webViewRef}
-                        source={{ html: MEDIAPIPE_HTML }}
-                        onMessage={handleWebViewMessage}
-                    />
-                </View>
-            </View>
-        );
-    }
+    // Initial loading handled in main view
 
     return (
-        <SafeAreaView style={[styles.container, dynamicStyles.container]}>
+        <SafeAreaView style={[styles.mainContainer, dynamicStyles.container]}>
             <View style={[styles.header, dynamicStyles.header, { borderBottomColor: theme.background.tertiary }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <ChevronLeft size={24} color={theme.text.primary} />
@@ -206,10 +205,16 @@ export default function BodyScreen() {
 
             {/* Camera / MediaPipe Section */}
             <View style={styles.cameraSection}>
+                {!webviewLoaded && (
+                    <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background.primary, zIndex: 10 }]}>
+                        <ActivityIndicator size="large" color={theme.accent.primary} />
+                        <Text style={{ marginTop: 10, color: theme.text.primary }}>Initializing Rebound Trainer...</Text>
+                    </View>
+                )}
                 <WebView
                     ref={webViewRef}
                     source={{ html: MEDIAPIPE_HTML }}
-                    style={styles.webview}
+                    style={[styles.webview, { opacity: webviewLoaded ? 1 : 0 }]}
                     originWhitelist={['*']}
                     allowsInlineMediaPlayback
                     mediaPlaybackRequiresUserAction={false}
@@ -217,12 +222,13 @@ export default function BodyScreen() {
                     onMessage={handleWebViewMessage}
                 />
 
-                {/* Overlay Feedback */}
                 <BlurView intensity={20} style={styles.statsOverlay}>
                     <View style={[styles.statCard, dynamicStyles.statCard]}>
                         <Activity size={20} color={theme.accent.teal} />
                         <View>
-                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>REPS</Text>
+                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>
+                                {(Array.isArray(exerciseName) ? exerciseName[0] : exerciseName)?.toLowerCase().includes('squat') ? 'REPS' : 'STREAMS'}
+                            </Text>
                             <Text style={[styles.statValue, dynamicStyles.statValue]}>{reps}</Text>
                         </View>
                     </View>
@@ -230,7 +236,9 @@ export default function BodyScreen() {
                     <View style={[styles.statCard, dynamicStyles.statCard]}>
                         <Target size={20} color={theme.accent.primary} />
                         <View>
-                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>DEPTH</Text>
+                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>
+                                {(Array.isArray(exerciseName) ? exerciseName[0] : exerciseName)?.toLowerCase().includes('squat') ? 'DEPTH' : 'FLOW %'}
+                            </Text>
                             <Text style={[styles.statValue, dynamicStyles.statValue]}>{squatDepth}%</Text>
                         </View>
                     </View>
@@ -278,8 +286,9 @@ export default function BodyScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    mainContainer: {
         flex: 1,
+        paddingBottom: 20,
     },
     loadingContainer: {
         flex: 1,
@@ -293,10 +302,10 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         paddingHorizontal: Spacing.lg,
         paddingTop: 10,
         paddingBottom: Spacing.md,
-        gap: Spacing.md,
     },
     backButton: {
         padding: 8,
@@ -385,6 +394,7 @@ const styles = StyleSheet.create({
     },
     controls: {
         padding: Spacing.lg,
+        paddingBottom: 100, // Clear tab bar
         borderTopWidth: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',

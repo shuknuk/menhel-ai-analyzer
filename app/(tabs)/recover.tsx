@@ -11,6 +11,7 @@ import { BlurView } from 'expo-blur';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../hooks/useTheme';
 import { useRouter } from 'expo-router';
+import { Workout } from '../../types/health';
 
 // Mock Workout Data
 const WORKOUTS = [
@@ -26,6 +27,12 @@ export default function RecoverScreen() {
     const { theme, isDark } = useTheme();
     const router = useRouter();
     const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredWorkouts = WORKOUTS.filter(workout =>
+        workout.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        workout.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
 
     const dynamicStyles = StyleSheet.create({
         container: {
@@ -69,7 +76,7 @@ export default function RecoverScreen() {
         },
     });
 
-    const handleOpenModal = (workout: any) => {
+    const handleOpenModal = (workout: Workout) => {
         setSelectedWorkout(workout);
     };
 
@@ -105,7 +112,15 @@ export default function RecoverScreen() {
                         placeholder="Search exercises, injuries..."
                         placeholderTextColor={theme.text.muted}
                         style={[styles.searchInput, dynamicStyles.searchInput]}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoCapitalize="none"
                     />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                            <X size={18} color={theme.text.muted} />
+                        </TouchableOpacity>
+                    )}
                 </View>
 
                 {/* Journal Insight Card */}
@@ -127,29 +142,43 @@ export default function RecoverScreen() {
                 </Animated.View>
 
                 <View style={styles.grid}>
-                    {WORKOUTS.map((workout, index) => (
-                        <Animated.View
-                            key={workout.id}
-                            entering={FadeInDown.delay(index * 100).duration(500)}
-                            style={styles.gridItem}
-                        >
-                            <TouchableOpacity onPress={() => handleOpenModal(workout)} activeOpacity={0.9}>
-                                <View style={styles.cardContainer}>
-                                    <Image source={{ uri: workout.image }} style={styles.cardImage} />
-                                    <View style={styles.cardOverlay} />
-                                    <View style={styles.cardContent}>
-                                        <View style={styles.playIcon}>
-                                            <Play size={16} color="white" fill="white" />
-                                        </View>
-                                        <View>
-                                            <Text style={[styles.cardTitle, { color: '#fff' }]}>{workout.title}</Text>
-                                            <Text style={[styles.cardMeta, { color: 'rgba(255,255,255,0.8)' }]}>{workout.duration} • {workout.level}</Text>
+                    {filteredWorkouts.length > 0 ? (
+                        filteredWorkouts.map((workout, index) => (
+                            <Animated.View
+                                key={workout.id}
+                                entering={FadeInDown.delay(index * 100).duration(500)}
+                                style={styles.gridItem}
+                            >
+                                <TouchableOpacity onPress={() => handleOpenModal(workout)} activeOpacity={0.9}>
+                                    <View style={styles.cardContainer}>
+                                        <Image source={{ uri: workout.image }} style={styles.cardImage} />
+                                        <View style={styles.cardOverlay} />
+                                        <View style={styles.cardContent}>
+                                            <View style={styles.playIcon}>
+                                                <Play size={16} color="white" fill="white" />
+                                            </View>
+                                            <View>
+                                                <Text style={[styles.cardTitle, { color: '#fff' }]}>{workout.title}</Text>
+                                                <Text style={[styles.cardMeta, { color: 'rgba(255,255,255,0.8)' }]}>{workout.duration} • {workout.level}</Text>
+                                            </View>
                                         </View>
                                     </View>
-                                </View>
+                                </TouchableOpacity>
+                            </Animated.View>
+                        ))
+                    ) : (
+                        <Animated.View entering={FadeIn} style={styles.emptyState}>
+                            <HeartPulse size={48} color={theme.text.muted} opacity={0.5} />
+                            <Text style={[styles.emptyStateText, { color: theme.text.muted }]}>
+                                No exercises found for "{searchQuery}"
+                            </Text>
+                            <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                <Text style={{ color: theme.accent.primary, marginTop: Spacing.sm, fontWeight: '600' }}>
+                                    Clear Search
+                                </Text>
                             </TouchableOpacity>
                         </Animated.View>
-                    ))}
+                    )}
                 </View>
             </ScrollView>
 
@@ -231,7 +260,7 @@ const styles = StyleSheet.create({
     },
     headerSubtitle: {
         ...Typography.body,
-        color: 'rgba(255,255,255,0.8)', // This will be overridden by dynamicStyles.headerSubtitle if it existed
+        color: 'rgba(255,255,255,0.8)',
         marginBottom: Spacing.xl,
     },
     searchBar: {
@@ -260,7 +289,7 @@ const styles = StyleSheet.create({
         height: 200,
         borderRadius: BorderRadius.lg,
         overflow: 'hidden',
-        backgroundColor: '#333', // Placeholder, will be dynamic if needed
+        backgroundColor: '#333',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
@@ -350,47 +379,35 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.md,
     },
     tag: {
-        backgroundColor: '#444', // Placeholder, will be dynamic if needed
+        backgroundColor: '#444',
         paddingHorizontal: Spacing.sm,
         paddingVertical: 4,
         borderRadius: BorderRadius.sm,
     },
     tagText: {
         ...Typography.small,
-        color: '#ccc', // Placeholder, will be dynamic if needed
+        color: '#ccc',
         fontWeight: '600',
     },
     modalDescription: {
         ...Typography.body,
-        color: '#ccc', // Placeholder, will be dynamic if needed
+        color: '#ccc',
         marginBottom: Spacing.xl,
     },
     startButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
         padding: Spacing.md,
         borderRadius: BorderRadius.round,
         gap: Spacing.sm,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 10,
+        justifyContent: 'center',
     },
     startButtonText: {
         ...Typography.h3,
         fontSize: 16,
-    },
-    closeSessionButton: {
-        position: 'absolute',
-        top: 50,
-        right: 20,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
     },
     insightCard: {
         borderRadius: BorderRadius.xl,
@@ -435,8 +452,14 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: '600',
     },
-    insightButtonText: {
-        ...Typography.h3,
-        fontSize: 14,
+    emptyState: {
+        width: '100%',
+        alignItems: 'center',
+        paddingVertical: Spacing.xl * 2,
+        gap: Spacing.md,
+    },
+    emptyStateText: {
+        ...Typography.body,
+        fontSize: 16,
     },
 });

@@ -8,17 +8,20 @@ import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../hooks/useTheme';
 import { useRouter } from 'expo-router';
 
-const MOODS = [
-    { emoji: '😔', label: 'Down', color: '#707459' },
-    { emoji: '😐', label: 'Okay', color: '#A5AF71' },
-    { emoji: '🙂', label: 'Good', color: '#869042' },
-    { emoji: '🤩', label: 'Great', color: '#D1E16A' },
-];
-
 export default function HealthHomeScreen() {
     const { theme, isDark } = useTheme();
     const router = useRouter();
     const [selectedMood, setSelectedMood] = useState<string | null>(null);
+
+    const MOODS = [
+        { emoji: '😔', label: 'Down', color: theme.moods.down },
+        { emoji: '😐', label: 'Okay', color: theme.moods.okay },
+        { emoji: '🙂', label: 'Good', color: theme.moods.good },
+        { emoji: '🤩', label: 'Great', color: theme.moods.great },
+    ];
+
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
     const dynamicStyles = StyleSheet.create({
         container: {
@@ -62,7 +65,7 @@ export default function HealthHomeScreen() {
                             <BouncingLogo size={32} color={theme.accent.primary} />
                             <View>
                                 <Text style={[styles.greeting, { color: theme.text.primary }]}>ReboundAI</Text>
-                                <Text style={[styles.date, { color: theme.text.muted }]}>Friday, February 6</Text>
+                                <Text style={[styles.date, { color: theme.text.muted }]}>{dateStr}</Text>
                             </View>
                         </View>
                         <TouchableOpacity

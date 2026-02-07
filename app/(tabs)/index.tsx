@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, Brain, TrendingUp, Zap, User as UserIcon, ChevronRight, Activity, Sparkles } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
@@ -109,6 +110,26 @@ export default function HealthHomeScreen() {
                         </View>
                     </Animated.View>
 
+                    {/* Squat Tracker Card */}
+                    <Animated.View entering={FadeInDown.delay(300)} style={styles.advisorContainer}>
+                        <GlassCard style={styles.advisorCard}>
+                            <View style={styles.advisorHeader}>
+                                <Activity size={20} color={theme.accent.primary} />
+                                <Text style={[styles.advisorTitle, { color: theme.accent.primary }]}>SQUAT TRACKER</Text>
+                            </View>
+                            <Text style={dynamicStyles.advisorText}>
+                                Ready to work out? Use the camera to track your squats and form in real-time.
+                            </Text>
+                            <TouchableOpacity
+                                style={[styles.actionButton, { backgroundColor: theme.accent.primary }]}
+                                onPress={() => router.push('/squat-tracker')}
+                            >
+                                <Text style={styles.actionButtonText}>Start Workout</Text>
+                                <ChevronRight size={20} color={theme.text.inverse} />
+                            </TouchableOpacity>
+                        </GlassCard>
+                    </Animated.View>
+
                     {/* AI Advisor Card */}
                     <Animated.View entering={FadeInDown.delay(400)} style={styles.advisorContainer}>
                         <GlassCard style={styles.advisorCard}>
@@ -120,11 +141,11 @@ export default function HealthHomeScreen() {
                                 Based on your heart rate variability and yesterday's mobility session, you're recovering well. Today is a great day for some light squat work to improve hip flexibility.
                             </Text>
                             <TouchableOpacity
-                                style={[styles.actionButton, { backgroundColor: theme.accent.primary }]}
+                                style={[styles.actionButton, { backgroundColor: theme.background.tertiary }]}
                                 onPress={() => router.push('/chat')}
                             >
-                                <Text style={styles.actionButtonText}>Discuss with AI</Text>
-                                <ChevronRight size={20} color={theme.text.inverse} />
+                                <Text style={[styles.actionButtonText, { color: theme.text.primary }]}>Discuss with AI</Text>
+                                <ChevronRight size={20} color={theme.text.primary} />
                             </TouchableOpacity>
                         </GlassCard>
                     </Animated.View>

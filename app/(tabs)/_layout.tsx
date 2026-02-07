@@ -1,30 +1,34 @@
-/**
  * Tabs Layout
- * New Rebound AI Structure: Home, Recover, Stats, Profile
- */
+    * New ReboundAI Structure: Home, Recover, Stats, Profile
+        */
 
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { Home, Activity, BarChart2, User } from 'lucide-react-native';
-import { Colors } from '../../constants/theme';
+import { Home, Sparkles, Video } from 'lucide-react-native';
+import { useTheme } from '../../hooks/useTheme';
 
 export default function TabLayout() {
+    const { theme, isDark } = useTheme();
+
     return (
         <Tabs
             screenOptions={{
                 headerShown: false,
-                tabBarStyle: styles.tabBar,
+                tabBarStyle: [styles.tabBar, {
+                    backgroundColor: isDark ? 'rgba(13, 17, 2, 0.8)' : 'rgba(248, 249, 250, 0.8)',
+                    borderTopColor: theme.background.tertiary
+                }],
                 tabBarBackground: () => (
                     <BlurView
                         intensity={90}
-                        tint="light"
+                        tint={isDark ? 'dark' : 'light'}
                         style={StyleSheet.absoluteFill}
                     />
                 ),
-                tabBarActiveTintColor: Colors.accent.primary,
-                tabBarInactiveTintColor: Colors.text.muted,
+                tabBarActiveTintColor: theme.accent.primary,
+                tabBarInactiveTintColor: theme.text.muted,
                 tabBarShowLabel: true,
                 tabBarLabelStyle: styles.tabLabel,
             }}
@@ -39,35 +43,28 @@ export default function TabLayout() {
                 }}
             />
             <Tabs.Screen
-                name="recover"
+                name="chat"
                 options={{
-                    title: 'Recover',
+                    title: 'AI Chat',
                     tabBarIcon: ({ color, size }) => (
-                        <Activity color={color} size={size} />
+                        <Sparkles color={color} size={size} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="stats"
+                name="videos"
                 options={{
-                    title: 'Stats',
+                    title: 'Videos',
                     tabBarIcon: ({ color, size }) => (
-                        <BarChart2 color={color} size={size} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="profile"
-                options={{
-                    title: 'Profile',
-                    tabBarIcon: ({ color, size }) => (
-                        <User color={color} size={size} />
+                        <Video color={color} size={size} />
                     ),
                 }}
             />
 
-            {/* Hidden tabs (preserving old routes temporarily or redirecting) */}
             {/* Hidden/Utility tabs */}
+            <Tabs.Screen name="recover" options={{ href: null }} />
+            <Tabs.Screen name="stats" options={{ href: null }} />
+            <Tabs.Screen name="profile" options={{ href: null }} />
             <Tabs.Screen name="body" options={{ href: null }} />
         </Tabs>
     );
@@ -76,9 +73,7 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
     tabBar: {
         position: 'absolute',
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
         borderTopWidth: 1,
-        borderTopColor: Colors.glass.border,
         elevation: 0,
         height: 85,
         paddingBottom: 20,

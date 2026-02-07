@@ -7,7 +7,8 @@ import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { Colors, BorderRadius, Spacing } from '../constants/theme';
+import { Typography, Spacing, BorderRadius } from '../constants/theme';
+import { useTheme } from '../hooks/useTheme';
 
 interface GlassCardProps {
     children: React.ReactNode;
@@ -26,8 +27,10 @@ export function GlassCard({
     intensity = 80,
     entering = 'fadeUp',
     delay = 0,
-    tint = 'dark',
+    tint,
 }: GlassCardProps) {
+    const { isDark, theme } = useTheme();
+    const activeTint = tint || (isDark ? 'dark' : 'light');
     const getEnteringAnimation = () => {
         switch (entering) {
             case 'fade':
@@ -45,9 +48,16 @@ export function GlassCard({
 
     return (
         <AnimatedBlurView
-            intensity={intensity}
-            tint={tint}
-            style={[styles.container, style]}
+            intensity={isDark ? 50 : 80}
+            tint={activeTint}
+            style={[
+                styles.container,
+                {
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.4)',
+                    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.6)'
+                },
+                style
+            ]}
             entering={getEnteringAnimation()}
         >
             <View style={styles.overlay}>
@@ -62,16 +72,13 @@ const styles = StyleSheet.create({
         borderRadius: BorderRadius.lg,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: Colors.glass.border,
-        backgroundColor: 'rgba(255, 255, 255, 0.4)', // Base layer for light mode depth
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 4,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.1,
+        shadowRadius: 15,
+        elevation: 8,
     },
     overlay: {
-        backgroundColor: Colors.glass.light,
         padding: Spacing.md,
     },
 });

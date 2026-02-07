@@ -5,18 +5,53 @@
 
 import React from 'react';
 import { StyleSheet, View, Text, Switch, TouchableOpacity, Image, SafeAreaView } from 'react-native';
-import { ChevronRight, Shield, Bell, Lock, LogOut } from 'lucide-react-native';
+import { ChevronRight, Shield, Bell, Lock, LogOut, Moon, Sun, Monitor } from 'lucide-react-native';
 import { GlassCard } from '../../components/GlassCard';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import useShakeDetect from '../../hooks/useShakeDetect';
+import { useTheme } from '../../hooks/useTheme';
 
 export default function ProfileScreen() {
     const { isPrivacyMode, togglePrivacyMode } = useShakeDetect();
+    const { theme, mode, setMode } = useTheme();
+
+    const THEME_OPTIONS = [
+        { id: 'system', label: 'System', icon: Monitor },
+        { id: 'light', label: 'Light', icon: Sun },
+        { id: 'dark', label: 'Dark', icon: Moon },
+    ] as const;
+
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            backgroundColor: theme.background.primary,
+        },
+        headerTitle: {
+            color: theme.text.primary,
+        },
+        userName: {
+            color: theme.text.primary,
+        },
+        userStatus: {
+            color: theme.accent.primary,
+        },
+        sectionTitle: {
+            color: theme.text.primary,
+        },
+        settingLabel: {
+            color: theme.text.primary,
+        },
+        divider: {
+            backgroundColor: theme.background.tertiary,
+        },
+        logoutText: {
+            color: theme.status.error,
+        },
+    });
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, dynamicStyles.container]}>
             <View style={styles.content}>
-                <Text style={styles.headerTitle}>Profile</Text>
+                <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>Profile</Text>
 
                 {/* User Card */}
                 <GlassCard style={styles.userCard}>
@@ -25,51 +60,76 @@ export default function ProfileScreen() {
                         style={styles.avatar}
                     />
                     <View style={styles.userInfo}>
-                        <Text style={styles.userName}>Alex Johnson</Text>
-                        <Text style={styles.userStatus}>Premium Member</Text>
+                        <Text style={[styles.userName, dynamicStyles.userName]}>Alex Johnson</Text>
+                        <Text style={[styles.userStatus, dynamicStyles.userStatus]}>Premium Member</Text>
+                    </View>
+                </GlassCard>
+
+                {/* Appearance Settings */}
+                <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Appearance</Text>
+                <GlassCard style={styles.settingsGroup}>
+                    <View style={styles.themeSelector}>
+                        {THEME_OPTIONS.map((item) => (
+                            <TouchableOpacity
+                                key={item.id}
+                                style={[
+                                    styles.themeItem,
+                                    mode === item.id && { backgroundColor: theme.accent.primary + '20', borderColor: theme.accent.primary }
+                                ]}
+                                onPress={() => setMode(item.id)}
+                            >
+                                <item.icon size={18} color={mode === item.id ? theme.accent.primary : theme.text.muted} />
+                                <Text style={[
+                                    styles.themeLabel,
+                                    { color: mode === item.id ? theme.accent.primary : theme.text.muted }
+                                ]}>
+                                    {item.label}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
                 </GlassCard>
 
                 {/* Settings */}
-                <Text style={styles.sectionTitle}>Settings</Text>
+                <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle, { marginTop: Spacing.xl }]}>Settings</Text>
 
                 <GlassCard style={styles.settingsGroup}>
                     <View style={styles.settingRow}>
                         <View style={styles.settingLeft}>
-                            <Shield size={20} color={Colors.accent.primary} />
-                            <Text style={styles.settingLabel}>Privacy Mode (Shake)</Text>
+                            <Shield size={20} color={theme.accent.primary} />
+                            <Text style={[styles.settingLabel, dynamicStyles.settingLabel]}>Privacy Mode (Shake)</Text>
                         </View>
                         <Switch
                             value={isPrivacyMode}
                             onValueChange={togglePrivacyMode}
-                            trackColor={{ false: Colors.background.tertiary, true: Colors.accent.primary }}
+                            trackColor={{ false: theme.background.tertiary, true: theme.accent.primary }}
                         />
                     </View>
 
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, dynamicStyles.divider]} />
 
                     <TouchableOpacity style={styles.settingRow}>
                         <View style={styles.settingLeft}>
-                            <Bell size={20} color={Colors.accent.primary} />
-                            <Text style={styles.settingLabel}>Notifications</Text>
+                            <Bell size={20} color={theme.accent.primary} />
+                            <Text style={[styles.settingLabel, dynamicStyles.settingLabel]}>Notifications</Text>
                         </View>
-                        <ChevronRight size={20} color={Colors.text.muted} />
+                        <ChevronRight size={20} color={theme.text.muted} />
                     </TouchableOpacity>
 
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, dynamicStyles.divider]} />
 
                     <TouchableOpacity style={styles.settingRow}>
                         <View style={styles.settingLeft}>
-                            <Lock size={20} color={Colors.accent.primary} />
-                            <Text style={styles.settingLabel}>Security</Text>
+                            <Lock size={20} color={theme.accent.primary} />
+                            <Text style={[styles.settingLabel, dynamicStyles.settingLabel]}>Security</Text>
                         </View>
-                        <ChevronRight size={20} color={Colors.text.muted} />
+                        <ChevronRight size={20} color={theme.text.muted} />
                     </TouchableOpacity>
                 </GlassCard>
 
                 <TouchableOpacity style={styles.logoutButton}>
-                    <LogOut size={20} color={Colors.status.error} />
-                    <Text style={styles.logoutText}>Log Out</Text>
+                    <LogOut size={20} color={theme.status.error} />
+                    <Text style={[styles.logoutText, dynamicStyles.logoutText]}>Log Out</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
@@ -79,7 +139,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background.primary,
     },
     content: {
         padding: Spacing.lg,
@@ -108,7 +167,6 @@ const styles = StyleSheet.create({
     },
     userStatus: {
         ...Typography.caption,
-        color: Colors.accent.primary,
         fontWeight: '600',
     },
     sectionTitle: {
@@ -135,7 +193,6 @@ const styles = StyleSheet.create({
     },
     divider: {
         height: 1,
-        backgroundColor: Colors.background.tertiary,
         marginLeft: 50, // Indent past icon
     },
     logoutButton: {
@@ -148,7 +205,24 @@ const styles = StyleSheet.create({
     },
     logoutText: {
         ...Typography.body,
-        color: Colors.status.error,
+        fontWeight: '600',
+    },
+    themeSelector: {
+        flexDirection: 'row',
+        padding: Spacing.sm,
+        gap: Spacing.sm,
+    },
+    themeItem: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: 'transparent',
+        gap: 6,
+    },
+    themeLabel: {
+        ...Typography.small,
         fontWeight: '600',
     },
 });

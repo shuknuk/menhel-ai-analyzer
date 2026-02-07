@@ -5,18 +5,27 @@
 
 import { Stack } from 'expo-router';
 import React from 'react';
-import { Colors } from '../constants/theme';
+import { ThemeProvider, useTheme } from '../hooks/useTheme';
 
-const RootLayout = () => {
+const AppContent = () => {
+    const { theme } = useTheme();
     return (
         <Stack
             screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: Colors.background.primary },
+                contentStyle: { backgroundColor: theme.background.primary },
             }}
         >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
+    );
+};
+
+const RootLayout = () => {
+    return (
+        <ThemeProvider>
+            <AppContent />
+        </ThemeProvider>
     );
 };
 

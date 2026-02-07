@@ -3,60 +3,61 @@
  * Clean, Clinical, High-Performance Aesthetic
  */
 
-export const Colors = {
-    // Clinical Light Theme
+export const LightColors = {
     background: {
-        primary: '#F8FAFC',      // Slate 50 - Main background
-        secondary: '#FFFFFF',    // Pure White - Cards/Elevated
-        tertiary: '#E2E8F0',     // Slate 200 - Borders/Dividers
+        primary: '#F8F9FA', // Clean light background
+        secondary: '#FFFFFF',
+        tertiary: '#E9EDC9', // Muted sage from palette
     },
-
-    // Brand Accents (High Performance)
     accent: {
-        primary: '#2563EB',      // Royal Blue - Primary Brand
-        secondary: '#7C3AED',    // Electric Purple - Secondary Brand
-        teal: '#0D9488',         // Clinical Teal - Success/Health
-        orange: '#F59E0B',       // Warning/Energy
-        red: '#EF4444',          // Alert/Error
+        primary: '#606C38', // Dark Olive
+        secondary: '#283618', // Deep Forest
+        teal: '#869042', // Olive
+        orange: '#D4A373', // Earth Tone
+        red: '#BC4749',
     },
-
-    // Shadows & Glass
-    shadows: {
-        soft: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        medium: '0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.05)',
-        glow: '0px 0px 15px rgba(37, 99, 235, 0.3)', // Blue glow
-    },
-
-    // Glass effect overlays (Light Mode)
-    glass: {
-        light: 'rgba(255, 255, 255, 0.7)',
-        medium: 'rgba(255, 255, 255, 0.85)',
-        border: 'rgba(226, 232, 240, 0.6)', // Slate 200 with opacity
-    },
-
-    // Typography Colors
     text: {
-        primary: '#0F172A',      // Slate 900 - Headings
-        secondary: '#475569',    // Slate 600 - Body
-        muted: '#94A3B8',        // Slate 400 - Captions
-        inverse: '#FFFFFF',      // White text on dark buttons
+        primary: '#101204', // Deepest green-black from palette
+        secondary: '#42481D', // Muted olive
+        muted: '#707459', // Sage dark
+        inverse: '#FFFFFF',
     },
-
-    // Status colors
     status: {
-        success: '#10B981',      // Emerald 500
-        warning: '#F59E0B',      // Amber 500
-        error: '#EF4444',        // Red 500
-        info: '#3B82F6',         // Blue 500
-    },
-
-    // Gradient presets
-    gradients: {
-        brand: ['#2563EB', '#7C3AED'], // Blue -> Purple
-        success: ['#10B981', '#059669'], // Emerald -> Green
-        heat: ['#F59E0B', '#EF4444'],    // Amber -> Red
+        success: '#10B981',
+        warning: '#F59E0B',
+        error: '#EF4444',
+        info: '#3B82F6',
     },
 };
+
+export const DarkColors = {
+    background: {
+        primary: '#0D1102', // Deeper green-black
+        secondary: '#1A1D0E', // Dark olive background
+        tertiary: '#2D3319', // Elevated forest green
+    },
+    accent: {
+        primary: '#D9ED92', // Brighter lime-green for high contrast
+        secondary: '#B5C99A', // Muted sage
+        teal: '#97A97C', // Olive
+        orange: '#FFD449', // High-vis gold/orange
+        red: '#FF6B6B',
+    },
+    text: {
+        primary: '#F1F5E1', // Ivory green for peak readability
+        secondary: '#D9E0C1', // Light sage
+        muted: '#A3AD8C', // Accessible sage gray
+        inverse: '#0D1102',
+    },
+    status: {
+        success: '#52B788',
+        warning: '#FFD449',
+        error: '#FF6B6B',
+        info: '#72EFDD',
+    },
+};
+
+export const Colors = LightColors; // Legacy support will be removed eventually
 
 export const Spacing = {
     xs: 4,
@@ -77,36 +78,31 @@ export const BorderRadius = {
 
 export const Typography = {
     h1: {
-        fontSize: 28,
-        fontWeight: '700' as const,
-        letterSpacing: -0.5,
-        color: Colors.text.primary,
+        fontSize: 32,
+        fontWeight: '800' as const,
+        letterSpacing: -1,
     },
     h2: {
-        fontSize: 22,
-        fontWeight: '600' as const,
-        letterSpacing: -0.3,
-        color: Colors.text.primary,
+        fontSize: 24,
+        fontWeight: '700' as const,
+        letterSpacing: -0.5,
     },
     h3: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: '600' as const,
-        color: Colors.text.primary,
+        letterSpacing: -0.3,
     },
     body: {
         fontSize: 16,
         fontWeight: '400' as const,
-        color: Colors.text.secondary,
         lineHeight: 24,
     },
     caption: {
         fontSize: 14,
         fontWeight: '500' as const,
-        color: Colors.text.muted,
     },
     small: {
         fontSize: 12,
         fontWeight: '500' as const,
-        color: Colors.text.muted,
     },
 };

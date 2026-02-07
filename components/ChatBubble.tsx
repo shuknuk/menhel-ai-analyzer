@@ -6,7 +6,8 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
-import { Colors, Typography, Spacing, BorderRadius } from '../constants/theme';
+import { Typography, Spacing, BorderRadius } from '../constants/theme';
+import { useTheme } from '../hooks/useTheme';
 import type { ChatMessage } from '../types/health';
 
 interface ChatBubbleProps {
@@ -15,6 +16,7 @@ interface ChatBubbleProps {
 }
 
 export function ChatBubble({ message, index }: ChatBubbleProps) {
+    const { theme } = useTheme();
     const isUser = message.role === 'user';
 
     // Reverse gravity: messages float UP like bubbles
@@ -31,16 +33,18 @@ export function ChatBubble({ message, index }: ChatBubbleProps) {
         ]}>
             <View style={[
                 styles.bubble,
-                isUser ? styles.userBubble : styles.aiBubble
+                isUser
+                    ? [styles.userBubble, { backgroundColor: theme.accent.primary }]
+                    : [styles.aiBubble, { backgroundColor: theme.background.secondary, borderColor: theme.background.tertiary }]
             ]}>
                 <Text style={[
                     styles.text,
-                    isUser ? styles.userText : styles.aiText
+                    { color: isUser ? '#fff' : theme.text.primary }
                 ]}>
                     {message.content}
                 </Text>
             </View>
-            <Text style={styles.timestamp}>
+            <Text style={[styles.timestamp, { color: theme.text.muted }]}>
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
         </Animated.View>
@@ -68,25 +72,16 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     userBubble: {
-        backgroundColor: Colors.accent.primary,
         borderBottomRightRadius: 2,
     },
     aiBubble: {
-        backgroundColor: Colors.background.secondary,
         borderBottomLeftRadius: 2,
         borderWidth: 1,
-        borderColor: Colors.background.tertiary,
     },
     text: {
         ...Typography.body,
         fontSize: 16,
         lineHeight: 22,
-    },
-    userText: {
-        color: '#fff',
-    },
-    aiText: {
-        color: Colors.text.primary,
     },
     timestamp: {
         ...Typography.small,

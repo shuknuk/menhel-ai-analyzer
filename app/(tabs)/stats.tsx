@@ -9,7 +9,8 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { OrbitSystem } from '../../components/OrbitSystem';
 import { WellnessGraph } from '../../components/WellnessGraph';
 import { GlassCard } from '../../components/GlassCard';
-import { Colors, Typography, Spacing } from '../../constants/theme';
+import { Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { useTheme } from '../../hooks/useTheme';
 import type { DailyTask, JournalEntry } from '../../types/health';
 
 const MOCK_TASKS: DailyTask[] = [
@@ -35,16 +36,38 @@ const MOCK_GRAPH_DATA = [
 ];
 
 export default function StatsScreen() {
+    const { theme } = useTheme();
+
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            backgroundColor: theme.background.primary,
+        },
+        headerTitle: {
+            color: theme.text.primary,
+        },
+        headerSubtitle: {
+            color: theme.text.muted,
+        },
+        sectionTitle: {
+            color: theme.text.primary,
+        },
+        journalDate: {
+            color: theme.text.secondary,
+        },
+        journalContent: {
+            color: theme.text.primary,
+        },
+    });
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, dynamicStyles.container]}>
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
                 <Animated.View entering={FadeIn.duration(600)}>
-                    <Text style={styles.headerTitle}>Insights</Text>
-                    <Text style={styles.headerSubtitle}>Wellness Orbit & Trends</Text>
+                    <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>Insights</Text>
+                    <Text style={[styles.headerSubtitle, dynamicStyles.headerSubtitle]}>Wellness Orbit & Trends</Text>
                 </Animated.View>
 
                 {/* Orbit Visualization */}
@@ -57,25 +80,25 @@ export default function StatsScreen() {
                 </View>
 
                 {/* Trends */}
-                <Text style={styles.sectionTitle}>Correlations</Text>
+                <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Correlations</Text>
                 <GlassCard style={styles.graphCard}>
                     <WellnessGraph data={MOCK_GRAPH_DATA} height={180} />
                 </GlassCard>
 
                 {/* Journal History */}
-                <Text style={styles.sectionTitle}>Recent Thoughts</Text>
+                <Text style={[styles.sectionTitle, dynamicStyles.sectionTitle]}>Recent Thoughts</Text>
                 {MOCK_JOURNAL.map((entry) => (
                     <GlassCard key={entry.id} style={styles.journalCard}>
                         <View style={styles.journalHeader}>
-                            <Text style={styles.journalDate}>
+                            <Text style={[styles.journalDate, dynamicStyles.journalDate]}>
                                 {entry.timestamp.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                             </Text>
                             <View style={[
                                 styles.sentimentDot,
-                                { backgroundColor: (entry.sentimentScore || 0) > 0 ? Colors.status.success : Colors.status.warning }
+                                { backgroundColor: (entry.sentimentScore || 0) > 0 ? theme.status.success : theme.status.warning }
                             ]} />
                         </View>
-                        <Text style={styles.journalContent} numberOfLines={2}>
+                        <Text style={[styles.journalContent, dynamicStyles.journalContent]} numberOfLines={2}>
                             {entry.content}
                         </Text>
                     </GlassCard>
@@ -90,7 +113,6 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background.primary,
     },
     scrollView: {
         flex: 1,
@@ -105,7 +127,6 @@ const styles = StyleSheet.create({
     },
     headerSubtitle: {
         ...Typography.body,
-        color: Colors.text.muted,
         marginBottom: Spacing.lg,
     },
     orbitContainer: {

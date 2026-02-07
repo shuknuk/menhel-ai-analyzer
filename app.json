@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Antigravity",
-    "slug": "antigravity",
+    "name": "ReboundAI",
+    "slug": "rebound-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "scheme": "antigravity",
+    "userInterfaceStyle": "automatic",
+    "scheme": "reboundai",
     "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",

@@ -4,12 +4,16 @@
  */
 
 import React, { useRef, useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Image } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, Image, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { AlertCircle } from 'lucide-react-native';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { ChevronLeft, Info, Camera, Zap, Video, Activity, Target } from 'lucide-react-native';
+import { GlassCard } from '../../components/GlassCard';
+import { Typography, Spacing, BorderRadius } from '../../constants/theme';
+import { useTheme } from '../../hooks/useTheme';
 import type { FormCorrection } from '../../types/health';
+import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 // HTML content for MediaPipe Pose Landmarker
 const MEDIAPIPE_HTML = `
@@ -81,9 +85,52 @@ const MEDIAPIPE_HTML = `
 `;
 
 export default function BodyScreen() {
+    const { theme, isDark } = useTheme();
+    const router = useRouter();
     const webViewRef = useRef<WebView>(null);
     const [webviewLoaded, setWebviewLoaded] = useState(false);
     const [formAlerts, setFormAlerts] = useState<FormCorrection[]>([]);
+    const [squatDepth, setSquatDepth] = useState(0);
+    const [reps, setReps] = useState(0);
+    const [status, setStatus] = useState('Position yourself in the frame');
+    const [showTutorial, setShowTutorial] = useState(true);
+
+    const dynamicStyles = StyleSheet.create({
+        container: {
+            backgroundColor: theme.background.primary,
+        },
+        header: {
+            backgroundColor: theme.background.secondary,
+            borderBottomColor: theme.background.tertiary,
+        },
+        headerTitle: {
+            color: theme.text.primary,
+        },
+        statusBadge: {
+            backgroundColor: theme.background.primary,
+            borderColor: theme.background.tertiary,
+        },
+        statusText: {
+            color: theme.text.secondary,
+        },
+        controls: {
+            backgroundColor: theme.background.secondary,
+            borderTopColor: theme.background.tertiary,
+        },
+        statCard: {
+            backgroundColor: theme.background.primary,
+            borderColor: theme.background.tertiary,
+        },
+        statLabel: {
+            color: theme.text.muted,
+        },
+        statValue: {
+            color: theme.text.primary,
+        },
+        depthTrack: {
+            backgroundColor: theme.background.tertiary,
+        },
+    });
 
     const handleWebViewMessage = (event: any) => {
         try {
@@ -94,11 +141,18 @@ export default function BodyScreen() {
             }
 
             if (message.type === 'landmarks') {
-                // Implement simple heuristic for validation
-                // e.g., check knee alignment
-                const landmarks = message.data;
-                // Mock logic: randomly trigger alert for demo
-                if (Math.random() > 0.98) {
+                // Mock logic for demo purposes
+                // Simulate squat depth based on some logic
+                const depth = Math.floor(Math.random() * 100);
+                setSquatDepth(depth);
+
+                if (depth > 80 && Math.random() > 0.95) {
+                    setReps(r => r + 1);
+                    setStatus('Excellent depth!');
+                    setTimeout(() => setStatus('Go again!'), 2000);
+                }
+
+                if (Math.random() > 0.99) {
                     setFormAlerts([{
                         id: Date.now().toString(),
                         joint: 'knee',
@@ -106,8 +160,6 @@ export default function BodyScreen() {
                         severity: 'medium',
                         timestamp: new Date()
                     }]);
-
-                    // Clear alert after 3s
                     setTimeout(() => setFormAlerts([]), 3000);
                 }
             }
@@ -119,11 +171,8 @@ export default function BodyScreen() {
     if (!webviewLoaded) {
         return (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.accent.primary} />
+                <ActivityIndicator size="large" color={theme.accent.primary} />
                 <Text style={styles.loadingText}>Initializing Rebound Trainer...</Text>
-                {/* Only load WebView if not loaded, keep it mounted but hidden if needed, 
-            but for simple loading state we return placeholder first then mount WebView 
-            Wait, WebView needs to mount to load. Changing strategy: */}
                 <View style={{ height: 0, width: 0, overflow: 'hidden' }}>
                     <WebView
                         ref={webViewRef}
@@ -136,16 +185,25 @@ export default function BodyScreen() {
     }
 
     return (
-        <View style={styles.container}>
-            {/* Video Tutorial Section */}
-            <View style={styles.tutorialSection}>
-                <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=600&auto=format&fit=crop' }}
-                    style={StyleSheet.absoluteFill}
-                />
-                <View style={styles.tutorialOverlay}>
-                    <Text style={styles.tutorialTitle}>Squat Form Tutorial</Text>
+        <SafeAreaView style={[styles.container, dynamicStyles.container]}>
+            <View style={[styles.header, dynamicStyles.header, { borderBottomColor: theme.background.tertiary }]}>
+                <View style={[styles.searchContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                    <Video size={18} color={theme.text.muted} />
+                    <TextInput
+                        placeholder="Search techniques..."
+                        placeholderTextColor={theme.text.muted}
+                        style={[styles.searchInput, { color: theme.text.primary }]}
+                    />
                 </View>
+                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.background.secondary }]}>
+                    <Target size={20} color={theme.accent.primary} />
+                </TouchableOpacity>
+            </View>
+
+            {/* AI Tracking Status */}
+            <View style={[styles.statusBadge, dynamicStyles.statusBadge]}>
+                <View style={[styles.pulseDot, { backgroundColor: theme.status.success }]} />
+                <Text style={[styles.statusText, dynamicStyles.statusText]}>AI Active: Squat detection</Text>
             </View>
 
             {/* Camera / MediaPipe Section */}
@@ -161,52 +219,117 @@ export default function BodyScreen() {
                     onMessage={handleWebViewMessage}
                 />
 
-                {/* Form Alerts */}
-                {formAlerts.length > 0 && (
-                    <Animated.View entering={FadeInDown} style={styles.alertContainer}>
-                        <View style={styles.alertIcon}>
-                            <AlertCircle color="#fff" size={24} />
-                        </View>
+                {/* Overlay Feedback */}
+                <BlurView intensity={20} style={styles.statsOverlay}>
+                    <View style={[styles.statCard, dynamicStyles.statCard]}>
+                        <Activity size={20} color={theme.accent.teal} />
                         <View>
-                            <Text style={styles.alertTitle}>Form Correction</Text>
-                            <Text style={styles.alertText}>{formAlerts[0].message}</Text>
+                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>REPS</Text>
+                            <Text style={[styles.statValue, dynamicStyles.statValue]}>{reps}</Text>
                         </View>
-                    </Animated.View>
-                )}
+                    </View>
+
+                    <View style={[styles.statCard, dynamicStyles.statCard]}>
+                        <Target size={20} color={theme.accent.primary} />
+                        <View>
+                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>DEPTH</Text>
+                            <Text style={[styles.statValue, dynamicStyles.statValue]}>{squatDepth}%</Text>
+                        </View>
+                    </View>
+                </BlurView>
+
+                {/* Depth Bar */}
+                <View style={styles.depthBarContainer}>
+                    <View style={[styles.depthTrack, dynamicStyles.depthTrack]}>
+                        <Animated.View
+                            style={[
+                                styles.depthFill,
+                                {
+                                    height: `${squatDepth}%`,
+                                    backgroundColor: squatDepth > 80 ? theme.accent.teal : theme.accent.primary
+                                }
+                            ]}
+                        />
+                    </View>
+                </View>
             </View>
-        </View>
+
+            {/* AI Control Bar */}
+            <View style={[styles.controls, dynamicStyles.controls]}>
+                <Text style={[styles.instruction, { color: theme.text.primary }]}>{status}</Text>
+                <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.accent.primary }]}>
+                    <Camera size={20} color="white" />
+                    <Text style={styles.actionText}>Calibrate Pose</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Form Alerts */}
+            {formAlerts.length > 0 && (
+                <Animated.View entering={FadeInDown} style={[styles.alertContainer, { backgroundColor: theme.accent.red }]}>
+                    <View style={[styles.alertIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                        <Info color="#fff" size={24} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={[styles.alertTitle, { color: '#fff' }]}>AI Logic Correction</Text>
+                        <Text style={[styles.alertText, { color: '#fff' }]}>{formAlerts[0].message}</Text>
+                    </View>
+                </Animated.View>
+            )}
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background.primary,
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.background.primary,
     },
     loadingText: {
         ...Typography.body,
         marginTop: Spacing.md,
-        color: Colors.text.secondary,
     },
-    tutorialSection: {
-        height: '35%',
-        backgroundColor: '#000',
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.md,
+        borderBottomWidth: 1,
     },
-    tutorialOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'flex-end',
-        padding: Spacing.md,
+    backButton: {
+        padding: 8,
+        borderRadius: BorderRadius.round,
     },
-    tutorialTitle: {
-        ...Typography.h3,
-        color: '#fff',
+    headerTitle: {
+        ...Typography.h2,
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconButton: {
+        padding: Spacing.xs,
+    },
+    statusBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.lg,
+        borderBottomWidth: 1,
+        gap: Spacing.sm,
+    },
+    pulseDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+    },
+    statusText: {
+        ...Typography.caption,
+        fontWeight: '600',
     },
     cameraSection: {
         flex: 1,
@@ -217,12 +340,81 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'transparent',
     },
+    statsOverlay: {
+        position: 'absolute',
+        top: Spacing.lg,
+        left: Spacing.lg,
+        right: Spacing.lg,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: Spacing.md,
+    },
+    statCard: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        gap: Spacing.md,
+        borderWidth: 1,
+    },
+    statLabel: {
+        ...Typography.caption,
+        fontWeight: '700',
+    },
+    statValue: {
+        ...Typography.h2,
+        fontSize: 24,
+    },
+    depthBarContainer: {
+        position: 'absolute',
+        right: Spacing.lg,
+        top: '20%',
+        bottom: '20%',
+        width: 12,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+    },
+    depthTrack: {
+        width: 8,
+        height: '100%',
+        borderRadius: 4,
+        overflow: 'hidden',
+    },
+    depthFill: {
+        width: '100%',
+        borderRadius: 4,
+    },
+    controls: {
+        padding: Spacing.lg,
+        borderTopWidth: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    instruction: {
+        ...Typography.body,
+        flex: 1,
+        marginRight: Spacing.md,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        borderRadius: BorderRadius.lg,
+        gap: Spacing.xs,
+    },
+    actionText: {
+        ...Typography.body,
+        fontWeight: 'bold',
+        color: 'white',
+    },
     alertContainer: {
         position: 'absolute',
         bottom: Spacing.xl,
         left: Spacing.lg,
         right: Spacing.lg,
-        backgroundColor: Colors.accent.red,
         borderRadius: BorderRadius.lg,
         padding: Spacing.md,
         flexDirection: 'row',
@@ -235,18 +427,29 @@ const styles = StyleSheet.create({
         gap: Spacing.md,
     },
     alertIcon: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
         borderRadius: BorderRadius.round,
         padding: 8,
     },
     alertTitle: {
         ...Typography.h3,
-        color: '#fff',
         fontSize: 16,
     },
     alertText: {
         ...Typography.body,
-        color: '#fff',
         fontSize: 14,
+    },
+    searchContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.md,
+        height: 44,
+        borderRadius: BorderRadius.md,
+        gap: Spacing.xs,
+    },
+    searchInput: {
+        flex: 1,
+        ...Typography.body,
+        padding: 0,
     },
 });

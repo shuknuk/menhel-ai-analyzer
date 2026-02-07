@@ -15,7 +15,8 @@ import Animated, {
     SharedValue,
 } from 'react-native-reanimated';
 import { BookOpen, Dumbbell, Brain } from 'lucide-react-native';
-import { Colors, Typography } from '../constants/theme';
+import { Typography } from '../constants/theme';
+import { useTheme } from '../hooks/useTheme';
 import type { DailyTask } from '../types/health';
 
 interface OrbitSystemProps {
@@ -25,35 +26,41 @@ interface OrbitSystemProps {
 }
 
 const WellnessSun = ({ score }: { score: number }) => {
+    const { theme } = useTheme();
+
     return (
-        <View style={styles.sunContainer}>
+        <View style={[styles.sunContainer, { backgroundColor: theme.background.secondary }]}>
             <Svg height="120" width="120" viewBox="0 0 120 120">
                 <Defs>
                     <RadialGradient id="sunGradient" cx="50%" cy="50%" rx="50%" ry="50%">
-                        <Stop offset="0%" stopColor={Colors.accent.orange} stopOpacity="1" />
-                        <Stop offset="100%" stopColor={Colors.accent.red} stopOpacity="1" />
+                        <Stop offset="0%" stopColor={theme.accent.orange} stopOpacity="1" />
+                        <Stop offset="100%" stopColor={theme.accent.red} stopOpacity="1" />
                     </RadialGradient>
                 </Defs>
                 <Circle cx="60" cy="60" r="40" fill="url(#sunGradient)" />
-                <Circle cx="60" cy="60" r="55" stroke={Colors.accent.orange} strokeWidth="1" strokeOpacity="0.3" />
+                <Circle cx="60" cy="60" r="55" stroke={theme.accent.orange} strokeWidth="1" strokeOpacity="0.3" />
             </Svg>
             <View style={styles.scoreContainer}>
-                <Text style={styles.scoreText}>{score}</Text>
-                <Text style={styles.scoreLabel}>Wellness</Text>
+                <Text style={[styles.scoreText, { color: theme.accent.orange }]}>{score}</Text>
+                <Text style={[styles.scoreLabel, { color: theme.text.muted }]}>Wellness</Text>
             </View>
         </View>
     );
 };
 
-const Planet = ({ type, icon: Icon, onPress }: any) => (
-    <TouchableOpacity onPress={onPress} style={styles.planetContainer}>
-        <View style={styles.planet}>
-            <Icon size={20} color="#fff" />
-        </View>
-    </TouchableOpacity>
-);
+const Planet = ({ type, icon: Icon, onPress }: any) => {
+    const { theme } = useTheme();
+    return (
+        <TouchableOpacity onPress={onPress} style={styles.planetContainer}>
+            <View style={[styles.planet, { backgroundColor: theme.accent.primary, borderColor: theme.background.secondary }]}>
+                <Icon size={20} color="#fff" />
+            </View>
+        </TouchableOpacity>
+    );
+};
 
 export function OrbitSystem({ wellnessScore, tasks, onTaskPress }: OrbitSystemProps) {
+    const { theme } = useTheme();
     const orbit1 = useSharedValue(0);
     const orbit2 = useSharedValue(120);
     const orbit3 = useSharedValue(240);
@@ -99,7 +106,12 @@ export function OrbitSystem({ wellnessScore, tasks, onTaskPress }: OrbitSystemPr
                         key={i}
                         style={[
                             styles.orbitPath,
-                            { width: r * 2, height: r * 2, borderRadius: r }
+                            {
+                                width: r * 2,
+                                height: r * 2,
+                                borderRadius: r,
+                                borderColor: theme.background.tertiary
+                            }
                         ]}
                     />
                 ))}
@@ -137,16 +149,13 @@ const styles = StyleSheet.create({
     orbitPath: {
         position: 'absolute',
         borderWidth: 1,
-        borderColor: Colors.background.tertiary, // Slate 200
     },
     sunContainer: {
         alignItems: 'center',
         justifyContent: 'center',
         width: 120,
         height: 120,
-        backgroundColor: Colors.background.secondary, // White
         borderRadius: 60,
-        shadowColor: Colors.accent.orange,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
         shadowRadius: 20,
@@ -158,12 +167,10 @@ const styles = StyleSheet.create({
     },
     scoreText: {
         ...Typography.h1,
-        color: Colors.accent.orange,
         fontSize: 28,
     },
     scoreLabel: {
         ...Typography.small,
-        color: Colors.text.muted,
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
@@ -184,15 +191,12 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: Colors.accent.primary,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: Colors.accent.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 5,
         borderWidth: 2,
-        borderColor: '#fff',
     },
 });

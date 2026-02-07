@@ -6,7 +6,8 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Svg, { Path, Circle, Defs, LinearGradient, Stop, Line } from 'react-native-svg';
-import { Colors, Typography, Spacing, BorderRadius } from '../constants/theme';
+import { Typography, Spacing, BorderRadius } from '../constants/theme';
+import { useTheme } from '../hooks/useTheme';
 
 interface DataPoint {
     date: string;
@@ -20,6 +21,7 @@ interface WellnessGraphProps {
 }
 
 export function WellnessGraph({ data, height = 200 }: WellnessGraphProps) {
+    const { theme } = useTheme();
     const width = 320; // Fixed width for now, could be responsive
 
     // Calculate path for Mood (Curved line)
@@ -53,12 +55,12 @@ export function WellnessGraph({ data, height = 200 }: WellnessGraphProps) {
                 <Text style={styles.title}>Correlation Trend</Text>
                 <View style={styles.legend}>
                     <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: Colors.accent.teal }]} />
-                        <Text style={styles.legendText}>Mood</Text>
+                        <View style={[styles.legendDot, { backgroundColor: theme.accent.teal }]} />
+                        <Text style={[styles.legendText, { color: theme.text.secondary }]}>Mood</Text>
                     </View>
                     <View style={styles.legendItem}>
-                        <View style={[styles.legendDot, { backgroundColor: Colors.accent.secondary }]} />
-                        <Text style={styles.legendText}>Pain</Text>
+                        <View style={[styles.legendDot, { backgroundColor: theme.accent.secondary }]} />
+                        <Text style={[styles.legendText, { color: theme.text.secondary }]}>Pain</Text>
                     </View>
                 </View>
             </View>
@@ -67,18 +69,18 @@ export function WellnessGraph({ data, height = 200 }: WellnessGraphProps) {
                 <Svg height={height} width={width}>
                     <Defs>
                         <LinearGradient id="moodGradient" x1="0" y1="0" x2="0" y2="1">
-                            <Stop offset="0" stopColor={Colors.accent.teal} stopOpacity="0.5" />
-                            <Stop offset="1" stopColor={Colors.accent.teal} stopOpacity="0" />
+                            <Stop offset="0" stopColor={theme.accent.teal} stopOpacity="0.5" />
+                            <Stop offset="1" stopColor={theme.accent.teal} stopOpacity="0" />
                         </LinearGradient>
                         <LinearGradient id="painGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <Stop offset="0%" stopColor={Colors.accent.secondary} stopOpacity="0.3" />
-                            <Stop offset="100%" stopColor={Colors.accent.secondary} stopOpacity="0" />
+                            <Stop offset="0%" stopColor={theme.accent.secondary} stopOpacity="0.3" />
+                            <Stop offset="100%" stopColor={theme.accent.secondary} stopOpacity="0" />
                         </LinearGradient>
                     </Defs>
 
                     {/* Grid Lines */}
-                    <Line x1="0" y1={height} x2={width} y2={height} stroke={Colors.background.tertiary} strokeWidth="1" />
-                    <Line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke={Colors.background.tertiary} strokeWidth="1" strokeDasharray="5 5" />
+                    <Line x1="0" y1={height} x2={width} y2={height} stroke={theme.background.tertiary} strokeWidth="1" />
+                    <Line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke={theme.background.tertiary} strokeWidth="1" strokeDasharray="5 5" />
 
                     {/* Mood Path */}
                     <Path
@@ -88,7 +90,7 @@ export function WellnessGraph({ data, height = 200 }: WellnessGraphProps) {
                     <Path
                         d={moodPath}
                         fill="none"
-                        stroke={Colors.accent.teal}
+                        stroke={theme.accent.teal}
                         strokeWidth="3"
                     />
 
@@ -100,7 +102,7 @@ export function WellnessGraph({ data, height = 200 }: WellnessGraphProps) {
                     <Path
                         d={painPath}
                         fill="none"
-                        stroke={Colors.accent.secondary}
+                        stroke={theme.accent.secondary}
                         strokeWidth="2"
                     />
 
@@ -114,8 +116,8 @@ export function WellnessGraph({ data, height = 200 }: WellnessGraphProps) {
                                 cx={x}
                                 cy={y}
                                 r="4"
-                                fill={Colors.background.secondary}
-                                stroke={Colors.accent.teal}
+                                fill={theme.background.secondary}
+                                stroke={theme.accent.teal}
                                 strokeWidth="2"
                             />
                         );
@@ -156,6 +158,5 @@ const styles = StyleSheet.create({
     },
     legendText: {
         ...Typography.small,
-        color: Colors.text.secondary,
     },
 });

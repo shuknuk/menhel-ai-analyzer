@@ -39,7 +39,7 @@ export function ChatBubble({ message, index }: ChatBubbleProps) {
             ]}>
                 <Text style={[
                     styles.text,
-                    { color: isUser ? '#fff' : theme.text.primary }
+                    { color: isUser ? theme.text.inverse : theme.text.primary }
                 ]}>
                     {message.content}
                 </Text>

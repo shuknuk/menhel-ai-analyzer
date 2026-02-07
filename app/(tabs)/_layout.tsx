@@ -1,12 +1,13 @@
+/**
  * Tabs Layout
-    * New ReboundAI Structure: Home, Recover, Stats, Profile
-        */
+ * New ReboundAI Structure: Home, Recover, Stats, Profile
+ */
 
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { Home, Sparkles, Video } from 'lucide-react-native';
+import { Home, Sparkles, Video, BarChart2, User } from 'lucide-react-native';
 import { useTheme } from '../../hooks/useTheme';
 
 export default function TabLayout() {
@@ -60,11 +61,27 @@ export default function TabLayout() {
                     ),
                 }}
             />
+            <Tabs.Screen
+                name="stats"
+                options={{
+                    title: 'Trends',
+                    tabBarIcon: ({ color, size }) => (
+                        <BarChart2 color={color} size={size} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="profile"
+                options={{
+                    title: 'Profile',
+                    tabBarIcon: ({ color, size }) => (
+                        <User color={color} size={size} />
+                    ),
+                }}
+            />
 
             {/* Hidden/Utility tabs */}
             <Tabs.Screen name="recover" options={{ href: null }} />
-            <Tabs.Screen name="stats" options={{ href: null }} />
-            <Tabs.Screen name="profile" options={{ href: null }} />
             <Tabs.Screen name="body" options={{ href: null }} />
         </Tabs>
     );

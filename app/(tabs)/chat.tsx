@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, SafeAreaView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Send, Sparkles } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ChatBubble } from '../../components/ChatBubble';
@@ -81,23 +81,26 @@ export default function ChatScreen() {
                 </View>
             </View>
 
-            {/* Chat Area */}
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={0}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
                 style={styles.keyboardView}
             >
-                <FlatList
-                    ref={flatListRef}
-                    data={messages}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item, index }) => (
-                        <ChatBubble message={item} index={index} />
-                    )}
-                    contentContainerStyle={styles.chatContent}
-                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    showsVerticalScrollIndicator={false}
-                />
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <View style={{ flex: 1 }}>
+                        <FlatList
+                            ref={flatListRef}
+                            data={messages}
+                            keyExtractor={(item) => item.id}
+                            renderItem={({ item, index }) => (
+                                <ChatBubble message={item} index={index} />
+                            )}
+                            contentContainerStyle={styles.chatContent}
+                            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                            showsVerticalScrollIndicator={false}
+                        />
+                    </View>
+                </TouchableWithoutFeedback>
 
                 {/* Input Area */}
                 <View style={[styles.inputContainer, dynamicStyles.inputContainer]}>

@@ -12,7 +12,7 @@ import { GlassCard } from '../../components/GlassCard';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../hooks/useTheme';
 import type { FormCorrection } from '../../types/health';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
 
 // HTML content for MediaPipe Pose Landmarker
@@ -87,6 +87,8 @@ const MEDIAPIPE_HTML = `
 export default function BodyScreen() {
     const { theme, isDark } = useTheme();
     const router = useRouter();
+    const params = useLocalSearchParams();
+    const exerciseName = params.exercise || 'Squat';
     const webViewRef = useRef<WebView>(null);
     const [webviewLoaded, setWebviewLoaded] = useState(false);
     const [formAlerts, setFormAlerts] = useState<FormCorrection[]>([]);
@@ -187,23 +189,19 @@ export default function BodyScreen() {
     return (
         <SafeAreaView style={[styles.container, dynamicStyles.container]}>
             <View style={[styles.header, dynamicStyles.header, { borderBottomColor: theme.background.tertiary }]}>
-                <View style={[styles.searchContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
-                    <Video size={18} color={theme.text.muted} />
-                    <TextInput
-                        placeholder="Search techniques..."
-                        placeholderTextColor={theme.text.muted}
-                        style={[styles.searchInput, { color: theme.text.primary }]}
-                    />
-                </View>
-                <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.background.secondary }]}>
-                    <Target size={20} color={theme.accent.primary} />
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <ChevronLeft size={24} color={theme.text.primary} />
+                </TouchableOpacity>
+                <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>AI Trainer</Text>
+                <TouchableOpacity style={styles.iconButton}>
+                    <Info size={20} color={theme.text.muted} />
                 </TouchableOpacity>
             </View>
 
             {/* AI Tracking Status */}
             <View style={[styles.statusBadge, dynamicStyles.statusBadge]}>
                 <View style={[styles.pulseDot, { backgroundColor: theme.status.success }]} />
-                <Text style={[styles.statusText, dynamicStyles.statusText]}>AI Active: Squat detection</Text>
+                <Text style={[styles.statusText, dynamicStyles.statusText]}>AI Active: {exerciseName} Detection</Text>
             </View>
 
             {/* Camera / MediaPipe Section */}
@@ -258,7 +256,7 @@ export default function BodyScreen() {
             <View style={[styles.controls, dynamicStyles.controls]}>
                 <Text style={[styles.instruction, { color: theme.text.primary }]}>{status}</Text>
                 <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.accent.primary }]}>
-                    <Camera size={20} color="white" />
+                    <Camera size={20} color={theme.text.inverse} />
                     <Text style={styles.actionText}>Calibrate Pose</Text>
                 </TouchableOpacity>
             </View>
@@ -295,10 +293,10 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
         paddingHorizontal: Spacing.lg,
-        paddingVertical: Spacing.md,
-        borderBottomWidth: 1,
+        paddingTop: 10,
+        paddingBottom: Spacing.md,
+        gap: Spacing.md,
     },
     backButton: {
         padding: 8,
@@ -437,15 +435,6 @@ const styles = StyleSheet.create({
     alertText: {
         ...Typography.body,
         fontSize: 14,
-    },
-    searchContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.md,
-        height: 44,
-        borderRadius: BorderRadius.md,
-        gap: Spacing.xs,
     },
     searchInput: {
         flex: 1,

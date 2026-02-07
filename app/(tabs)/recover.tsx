@@ -10,6 +10,7 @@ import { ChevronRight, Play, Search, BookOpen, HeartPulse, X } from 'lucide-reac
 import { BlurView } from 'expo-blur';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../hooks/useTheme';
+import { useRouter } from 'expo-router';
 
 // Mock Workout Data
 const WORKOUTS = [
@@ -23,8 +24,8 @@ const WORKOUTS = [
 
 export default function RecoverScreen() {
     const { theme, isDark } = useTheme();
+    const router = useRouter();
     const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
-    const [isSessionActive, setIsSessionActive] = useState(false);
 
     const dynamicStyles = StyleSheet.create({
         container: {
@@ -61,6 +62,11 @@ export default function RecoverScreen() {
         modalDesc: {
             color: theme.text.secondary,
         },
+        startButtonText: {
+            ...Typography.h3,
+            fontSize: 16,
+            color: theme.text.inverse,
+        },
     });
 
     const handleOpenModal = (workout: any) => {
@@ -72,30 +78,20 @@ export default function RecoverScreen() {
     };
 
     const handleStartSession = () => {
-        setIsSessionActive(true);
+        if (!selectedWorkout) return;
+        const exercise = selectedWorkout.title;
         handleCloseModal();
+        router.push({
+            pathname: '/(tabs)/body',
+            params: { exercise }
+        });
     };
-
-    // If session is active, show the placeholder for MediaPipe trainer
-    if (isSessionActive) {
-        return (
-            <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ color: '#fff', fontSize: 18, marginBottom: 20 }}>Rebound Trainer Active</Text>
-                <Text style={{ color: '#aaa', marginBottom: 40 }}>Camera Feed Initializing...</Text>
-                <TouchableOpacity
-                    style={styles.closeSessionButton}
-                    onPress={() => setIsSessionActive(false)}
-                >
-                    <X color="#fff" size={24} />
-                </TouchableOpacity>
-            </View>
-        );
-    }
 
     return (
         <SafeAreaView style={[styles.container, dynamicStyles.container]}>
             <ScrollView
                 style={styles.content}
+                contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
                 <Animated.View entering={FadeIn.duration(600)}>
@@ -125,7 +121,7 @@ export default function RecoverScreen() {
                         </Text>
                         <TouchableOpacity style={[styles.insightAction, { backgroundColor: theme.accent.secondary }]}>
                             <Text style={styles.insightActionText}>Start Suggested Routine</Text>
-                            <ChevronRight size={16} color="white" />
+                            <ChevronRight size={16} color={theme.text.inverse} />
                         </TouchableOpacity>
                     </BlurView>
                 </Animated.View>
@@ -207,7 +203,7 @@ export default function RecoverScreen() {
                                         activeOpacity={0.8}
                                     >
                                         <Text style={styles.startButtonText}>Start Session</Text>
-                                        <Play size={20} color="white" fill="white" />
+                                        <Play size={20} color={theme.text.inverse} fill={theme.text.inverse} />
                                     </TouchableOpacity>
                                 </View>
                             </>
@@ -225,11 +221,13 @@ const styles = StyleSheet.create({
     },
     content: {
         padding: Spacing.lg,
-        paddingBottom: 100,
+    },
+    scrollContent: {
+        paddingBottom: 120,
     },
     headerTitle: {
         ...Typography.h1,
-        marginBottom: Spacing.xs,
+        marginBottom: Spacing.lg,
     },
     headerSubtitle: {
         ...Typography.body,
@@ -381,7 +379,6 @@ const styles = StyleSheet.create({
     startButtonText: {
         ...Typography.h3,
         fontSize: 16,
-        color: '#fff',
     },
     closeSessionButton: {
         position: 'absolute',

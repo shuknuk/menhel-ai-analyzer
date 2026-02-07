@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, SafeAreaView, Image } from 'react-native';
-import { Heart, Brain, TrendingUp, Zap, User, ChevronRight, Activity, Sparkles } from 'lucide-react-native';
+import { Heart, Brain, TrendingUp, Zap, User as UserIcon, ChevronRight, Activity, Sparkles } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { GlassCard } from '../../components/GlassCard';
 import { BouncingLogo } from '../../components/BouncingLogo';
@@ -44,12 +44,17 @@ export default function HealthHomeScreen() {
             color: theme.text.secondary,
             ...Typography.body,
             lineHeight: 22,
-        }
+        },
+        actionButtonText: {
+            color: theme.text.inverse,
+            fontWeight: '700',
+            fontSize: 16,
+        },
     });
 
     return (
         <SafeAreaView style={[styles.container, dynamicStyles.container]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Header */}
                 <View style={[styles.header, dynamicStyles.header]}>
                     <View style={styles.headerTop}>
@@ -64,7 +69,7 @@ export default function HealthHomeScreen() {
                             style={[styles.profileButton, { backgroundColor: theme.background.tertiary }]}
                             onPress={() => router.push('/profile')}
                         >
-                            <User size={24} color={theme.text.primary} />
+                            <UserIcon size={24} color={theme.text.primary} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -91,7 +96,7 @@ export default function HealthHomeScreen() {
                                         <Text style={styles.moodEmoji}>{mood.emoji}</Text>
                                         <Text style={[
                                             styles.moodLabel,
-                                            { color: isSelected ? '#fff' : theme.text.secondary }
+                                            { color: isSelected ? theme.text.inverse : theme.text.secondary }
                                         ]}>
                                             {mood.label}
                                         </Text>
@@ -116,7 +121,7 @@ export default function HealthHomeScreen() {
                                 onPress={() => router.push('/chat')}
                             >
                                 <Text style={styles.actionButtonText}>Discuss with AI</Text>
-                                <ChevronRight size={20} color="#fff" />
+                                <ChevronRight size={20} color={theme.text.inverse} />
                             </TouchableOpacity>
                         </GlassCard>
                     </Animated.View>
@@ -159,7 +164,7 @@ export default function HealthHomeScreen() {
                         </TouchableOpacity>
                     </Animated.View>
                 </View>
-                <View style={{ height: 120 }} />
+                <View style={{ height: 40 }} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -169,8 +174,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    scrollContent: {
+        paddingBottom: 120,
+    },
     header: {
-        paddingTop: 20,
+        paddingTop: 10,
         paddingBottom: Spacing.lg,
         paddingHorizontal: Spacing.lg,
         borderBottomWidth: 1,
@@ -245,7 +253,6 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     actionButtonText: {
-        color: '#fff',
         fontWeight: '700',
         fontSize: 16,
     },

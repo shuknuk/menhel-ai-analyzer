@@ -1,4 +1,4 @@
-# ReboundAI
+# ReboundAI - now Menhel
 
 A next-generation AI-powered fitness and recovery application built with React Native and Expo. ReboundAI combines real-time pose detection using MediaPipe with a sophisticated health tracking system to provide personalized recovery insights and workout analysis.
 

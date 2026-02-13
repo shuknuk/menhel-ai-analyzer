@@ -87,7 +87,7 @@ The application uses a sophisticated earth-tone palette derived from Figma desig
 ### Project Structure
 
 ```
-menhel-ai-analyzer/
+rebound-ai/
 ├── app/
 │   ├── (tabs)/
 │   │   ├── index.tsx          # Home screen with mood tracking
@@ -130,7 +130,7 @@ menhel-ai-analyzer/
 1. Clone the repository
 ```bash
 git clone <repository-url>
-cd menhel-ai-analyzer
+cd rebound-ai
 ```
 
 2. Install dependencies

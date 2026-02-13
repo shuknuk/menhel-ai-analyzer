@@ -7,7 +7,7 @@ class MediapipePoseView: ExpoView {
   private let previewLayer = AVCaptureVideoPreviewLayer()
   private let captureSession = AVCaptureSession()
   private let videoDataOutput = AVCaptureVideoDataOutput()
-  private let videoQueue = DispatchQueue(label: "com.menhel.videoQueue")
+  private let videoQueue = DispatchQueue(label: "com.reboundai.videoQueue")
   private var poseLandmarker: PoseLandmarker?
   
   // Squat logic

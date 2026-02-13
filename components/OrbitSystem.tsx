@@ -82,20 +82,35 @@ export function OrbitSystem({ wellnessScore, tasks, onTaskPress }: OrbitSystemPr
         );
     }, []);
 
-    const createOrbitStyle = (orbitValue: SharedValue<number>, radius: number) => {
-        return useAnimatedStyle(() => {
-            const angle = (orbitValue.value * Math.PI) / 180;
-            const x = Math.cos(angle) * radius;
-            const y = Math.sin(angle) * radius;
-            return {
-                transform: [{ translateX: x }, { translateY: y }],
-            };
-        });
-    };
+    const orbit1Style = useAnimatedStyle(() => {
+        const radius = ORBIT_RADII[0];
+        const angle = (orbit1.value * Math.PI) / 180;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        return {
+            transform: [{ translateX: x }, { translateY: y }],
+        };
+    });
 
-    const orbit1Style = createOrbitStyle(orbit1, ORBIT_RADII[0]);
-    const orbit2Style = createOrbitStyle(orbit2, ORBIT_RADII[1]);
-    const orbit3Style = createOrbitStyle(orbit3, ORBIT_RADII[2]);
+    const orbit2Style = useAnimatedStyle(() => {
+        const radius = ORBIT_RADII[1];
+        const angle = (orbit2.value * Math.PI) / 180;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        return {
+            transform: [{ translateX: x }, { translateY: y }],
+        };
+    });
+
+    const orbit3Style = useAnimatedStyle(() => {
+        const radius = ORBIT_RADII[2];
+        const angle = (orbit3.value * Math.PI) / 180;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        return {
+            transform: [{ translateX: x }, { translateY: y }],
+        };
+    });
 
     return (
         <View style={styles.container}>

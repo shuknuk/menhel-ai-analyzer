@@ -80,9 +80,9 @@ export default function VideosScreen() {
 
     const handleStartWorkout = (exercise: string) => {
         setSelectedVideo(null);
-        // Navigate to body tab with params
+        // Navigate to squat tracker modal with exercise params
         router.push({
-            pathname: '/(tabs)/body',
+            pathname: '/squat-tracker',
             params: { exercise }
         });
     };

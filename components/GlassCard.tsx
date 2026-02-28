@@ -54,7 +54,7 @@ export function GlassCard({
                 styles.container,
                 {
                     borderColor: theme.accent.tertiary,
-                    backgroundColor: isDark ? 'rgba(26, 29, 14, 0.6)' : 'rgba(255, 255, 255, 0.6)'
+                    backgroundColor: theme.background.secondary
                 },
                 style
             ]}

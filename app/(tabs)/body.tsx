@@ -1,455 +1,289 @@
 /**
- * Body Screen - Mediapipe Integration
- * Smart Rehab Trainer with Camera and Skeleton Overlay
+ * Body Screen - AI Trainer Hub
+ * Quick access to start different exercise types with real pose detection
  */
 
-import React, { useRef, useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Image, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
-import { WebView, WebViewMessageEvent } from 'react-native-webview';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { ChevronLeft, Info, Camera, Zap, Video, Activity, Target } from 'lucide-react-native';
+import React from 'react';
+import { StyleSheet, View, Text, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { ChevronRight, Dumbbell, Activity, Target, Zap, Hand } from 'lucide-react-native';
 import { GlassCard } from '../../components/GlassCard';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../hooks/useTheme';
-import type { FormCorrection } from '../../types/health';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { BlurView } from 'expo-blur';
+import { useRouter } from 'expo-router';
 
-// HTML content for MediaPipe Pose Landmarker
-const MEDIAPIPE_HTML = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
-  <style>
-    body { margin: 0; padding: 0; background: #000; overflow: hidden; }
-    video { transform: scale(-1, 1); position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(-1, 1); }
-  </style>
-</head>
-<body>
-  <video id="input_video" playsinline webkit-playsinline></video>
-  <canvas id="output_canvas"></canvas>
-  <script>
-    const videoElement = document.getElementById('input_video');
-    const canvasElement = document.getElementById('output_canvas');
-    const canvasCtx = canvasElement.getContext('2d');
+interface ExerciseOption {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+}
 
-    function onResults(results) {
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      
-      // Draw skeleton
-      if (results.poseLandmarks) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'landmarks', data: results.poseLandmarks }));
-        
-        // Basic drawing logic would go here
-        // For now we rely on the React Native overlay or just raw data stream
-      }
-      canvasCtx.restore();
-    }
-
-    const pose = new Pose({locateFile: (file) => {
-      return \`https://cdn.jsdelivr.net/npm/@mediapipe/pose/\${file}\`;
-    }});
-    
-    pose.setOptions({
-      modelComplexity: 1,
-      smoothLandmarks: true,
-      enableSegmentation: false,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-    
-    pose.onResults(onResults);
-
-    const camera = new Camera(videoElement, {
-      onFrame: async () => {
-        await pose.send({image: videoElement});
-      },
-      width: 1280,
-      height: 720
-    });
-    
-    camera.start();
-    
-    // Notify RN that we are running
-    setTimeout(() => {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'status', data: 'loaded' }));
-    }, 1000);
-  </script>
-</body>
-</html>
-`;
+const EXERCISES: ExerciseOption[] = [
+    {
+        id: 'squat',
+        name: 'Squat',
+        description: 'Track your squat form with real-time AI feedback',
+        icon: 'Dumbbell',
+        difficulty: 'beginner',
+    },
+    {
+        id: 'deadlift',
+        name: 'Deadlift',
+        description: 'Monitor your hinge pattern and back position',
+        icon: 'Activity',
+        difficulty: 'intermediate',
+    },
+    {
+        id: 'lunge',
+        name: 'Lunge',
+        description: 'Balance and depth tracking for lunges',
+        icon: 'Zap',
+        difficulty: 'beginner',
+    },
+];
 
 export default function BodyScreen() {
-    const { theme, isDark } = useTheme();
+    const { theme } = useTheme();
     const router = useRouter();
-    const params = useLocalSearchParams();
-    const exerciseName = params.exercise || 'Squat';
-    const exerciseNameStr = (Array.isArray(exerciseName) ? exerciseName[0] : exerciseName) || 'Squat';
-    const webViewRef = useRef<WebView>(null);
-    const [webviewLoaded, setWebviewLoaded] = useState(false);
-    const [formAlerts, setFormAlerts] = useState<FormCorrection[]>([]);
-    const [squatDepth, setSquatDepth] = useState(0);
-    const [reps, setReps] = useState(0);
-    const [status, setStatus] = useState('Position yourself in the frame');
-    const [showTutorial, setShowTutorial] = useState(true);
 
-    const dynamicStyles = StyleSheet.create({
-        container: {
-            backgroundColor: theme.background.primary,
-        },
-        header: {
-            backgroundColor: theme.background.secondary,
-            borderBottomColor: theme.background.tertiary,
-        },
-        headerTitle: {
-            color: theme.text.primary,
-        },
-        statusBadge: {
-            backgroundColor: theme.background.primary,
-            borderColor: theme.accent.tertiary,
-        },
-        statusText: {
-            color: theme.text.secondary,
-        },
-        controls: {
-            backgroundColor: theme.background.secondary,
-            borderTopColor: theme.background.tertiary,
-        },
-        statCard: {
-            backgroundColor: theme.background.primary,
-            borderColor: theme.accent.tertiary,
-            borderWidth: 1,
-        },
-        statLabel: {
-            color: theme.accent.secondary,
-        },
-        statValue: {
-            color: theme.text.primary,
-        },
-        depthTrack: {
-            backgroundColor: theme.background.tertiary,
-        },
-    });
+    const handleStartExercise = (exercise: ExerciseOption) => {
+        router.push({
+            pathname: '/squat-tracker',
+            params: { exercise: exercise.name }
+        });
+    };
 
-    const handleWebViewMessage = (event: WebViewMessageEvent) => {
-        try {
-            const message = JSON.parse(event.nativeEvent.data);
-
-            if (message.type === 'status' && message.data === 'loaded') {
-                setWebviewLoaded(true);
-            }
-
-            if (message.type === 'landmarks') {
-                // Mock logic for demo purposes
-                const isSquat = exerciseNameStr.toLowerCase().includes('squat');
-                const depth = Math.floor(Math.random() * 100);
-
-                if (isSquat) {
-                    setSquatDepth(depth);
-                    if (depth > 80 && Math.random() > 0.95) {
-                        setReps(r => r + 1);
-                        setStatus('Excellent depth!');
-                        setTimeout(() => setStatus('Go again!'), 2000);
-                    }
-                } else {
-                    // Mobility/Flow handling
-                    setSquatDepth(depth); // Reusing depth bar for "Range of Motion"
-                    if (depth > 70 && Math.random() > 0.98) {
-                        setReps(r => r + 1);
-                        setStatus('Great stretch holding...');
-                        setTimeout(() => setStatus('Switching side soon'), 3000);
-                    }
-                }
-
-                if (Math.random() > 0.99) {
-                    setFormAlerts([{
-                        id: Date.now().toString(),
-                        joint: isSquat ? 'knee' : 'posture',
-                        message: isSquat
-                            ? "Keep your knees aligned over toes"
-                            : "Keep your spine neutral during flow",
-                        severity: 'medium',
-                        timestamp: new Date()
-                    }]);
-                    setTimeout(() => setFormAlerts([]), 3000);
-                }
-            }
-        } catch (e) {
-            console.error("WebView message error:", e);
+    const getDifficultyColor = (difficulty: ExerciseOption['difficulty']) => {
+        switch (difficulty) {
+            case 'beginner':
+                return theme.status.success;
+            case 'intermediate':
+                return theme.accent.orange;
+            case 'advanced':
+                return theme.accent.red;
         }
     };
 
-    // Initial loading handled in main view
+    const getIcon = (iconName: string) => {
+        switch (iconName) {
+            case 'Dumbbell':
+                return <Dumbbell size={32} color={theme.accent.primary} />;
+            case 'Activity':
+                return <Activity size={32} color={theme.accent.teal} />;
+            case 'Zap':
+                return <Zap size={32} color={theme.accent.orange} />;
+            default:
+                return <Target size={32} color={theme.accent.primary} />;
+        }
+    };
 
     return (
-        <SafeAreaView style={[styles.mainContainer, dynamicStyles.container]}>
-            <View style={[styles.header, dynamicStyles.header, { borderBottomColor: theme.accent.tertiary }]}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ChevronLeft size={24} color={theme.text.primary} />
-                </TouchableOpacity>
-                <Text style={[styles.headerTitle, dynamicStyles.headerTitle]}>AI Trainer</Text>
-                <TouchableOpacity style={styles.iconButton}>
-                    <Info size={20} color={theme.text.muted} />
-                </TouchableOpacity>
-            </View>
-
-            {/* AI Tracking Status */}
-            <View style={[styles.statusBadge, dynamicStyles.statusBadge]}>
-                <View style={[styles.pulseDot, { backgroundColor: theme.status.success }]} />
-                <Text style={[styles.statusText, dynamicStyles.statusText]}>AI Active: {exerciseName} Detection</Text>
-            </View>
-
-            {/* Camera / MediaPipe Section */}
-            <View style={styles.cameraSection}>
-                {!webviewLoaded && (
-                    <View style={[StyleSheet.absoluteFill, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.background.primary, zIndex: 10 }]}>
-                        <ActivityIndicator size="large" color={theme.accent.primary} />
-                        <Text style={{ marginTop: 10, color: theme.text.primary }}>Initializing Rebound Trainer...</Text>
-                    </View>
-                )}
-                <WebView
-                    ref={webViewRef}
-                    source={{ html: MEDIAPIPE_HTML }}
-                    style={[styles.webview, { opacity: webviewLoaded ? 1 : 0 }]}
-                    originWhitelist={['*']}
-                    allowsInlineMediaPlayback
-                    mediaPlaybackRequiresUserAction={false}
-                    javaScriptEnabled
-                    onMessage={handleWebViewMessage}
-                />
-
-                <BlurView intensity={20} style={styles.statsOverlay}>
-                    <View style={[styles.statCard, dynamicStyles.statCard]}>
-                        <Activity size={20} color={theme.accent.teal} />
-                        <View>
-                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>
-                                {(Array.isArray(exerciseName) ? exerciseName[0] : exerciseName)?.toLowerCase().includes('squat') ? 'REPS' : 'STREAMS'}
-                            </Text>
-                            <Text style={[styles.statValue, dynamicStyles.statValue]}>{reps}</Text>
-                        </View>
-                    </View>
-
-                    <View style={[styles.statCard, dynamicStyles.statCard]}>
-                        <Target size={20} color={theme.accent.primary} />
-                        <View>
-                            <Text style={[styles.statLabel, dynamicStyles.statLabel]}>
-                                {(Array.isArray(exerciseName) ? exerciseName[0] : exerciseName)?.toLowerCase().includes('squat') ? 'DEPTH' : 'FLOW %'}
-                            </Text>
-                            <Text style={[styles.statValue, dynamicStyles.statValue]}>{squatDepth}%</Text>
-                        </View>
-                    </View>
-                </BlurView>
-
-                {/* Depth Bar */}
-                <View style={styles.depthBarContainer}>
-                    <View style={[styles.depthTrack, dynamicStyles.depthTrack]}>
-                        <Animated.View
-                            style={[
-                                styles.depthFill,
-                                {
-                                    height: `${squatDepth}%`,
-                                    backgroundColor: squatDepth > 80 ? theme.accent.teal : theme.accent.primary
-                                }
-                            ]}
-                        />
-                    </View>
-                </View>
-            </View>
-
-            {/* AI Control Bar */}
-            <View style={[styles.controls, dynamicStyles.controls]}>
-                <Text style={[styles.instruction, { color: theme.text.primary }]}>{status}</Text>
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.accent.primary }]}>
-                    <Camera size={20} color={theme.text.inverse} />
-                    <Text style={styles.actionText}>Calibrate Pose</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Form Alerts */}
-            {formAlerts.length > 0 && (
-                <Animated.View entering={FadeInDown} style={[styles.alertContainer, { backgroundColor: theme.accent.red }]}>
-                    <View style={[styles.alertIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                        <Info color="#fff" size={24} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                        <Text style={[styles.alertTitle, { color: '#fff' }]}>AI Logic Correction</Text>
-                        <Text style={[styles.alertText, { color: '#fff' }]}>{formAlerts[0].message}</Text>
-                    </View>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background.primary }]}>
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
+                    <Text style={[styles.headerTitle, { color: theme.text.primary }]}>AI Trainer</Text>
+                    <Text style={[styles.headerSubtitle, { color: theme.text.muted }]}>
+                        Real-time form analysis powered by MediaPipe
+                    </Text>
                 </Animated.View>
-            )}
+
+                {/* Status Card */}
+                <GlassCard style={styles.statusCard}>
+                    <View style={styles.statusContent}>
+                        <View style={[styles.statusDot, { backgroundColor: theme.status.success }]} />
+                        <View style={styles.statusTextContainer}>
+                            <Text style={[styles.statusTitle, { color: theme.text.primary }]}>
+                                Pose Detection Active
+                            </Text>
+                            <Text style={[styles.statusSubtitle, { color: theme.text.muted }]}>
+                                Using native MediaPipe for accurate tracking
+                            </Text>
+                        </View>
+                    </View>
+                </GlassCard>
+
+                {/* Exercise List */}
+                <Text style={[styles.sectionTitle, { color: theme.accent.secondary }]}>
+                    Start Training
+                </Text>
+
+                {EXERCISES.map((exercise) => (
+                    <TouchableOpacity
+                        key={exercise.id}
+                        onPress={() => handleStartExercise(exercise)}
+                        activeOpacity={0.7}
+                    >
+                        <GlassCard style={styles.exerciseCard}>
+                            <View style={styles.exerciseContent}>
+                                <View style={[styles.iconContainer, { backgroundColor: theme.background.tertiary }]}>
+                                    {getIcon(exercise.icon)}
+                                </View>
+                                <View style={styles.exerciseInfo}>
+                                    <Text style={[styles.exerciseName, { color: theme.text.primary }]}>
+                                        {exercise.name}
+                                    </Text>
+                                    <Text style={[styles.exerciseDescription, { color: theme.text.muted }]}>
+                                        {exercise.description}
+                                    </Text>
+                                    <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(exercise.difficulty) + '20' }]}>
+                                        <Text style={[styles.difficultyText, { color: getDifficultyColor(exercise.difficulty) }]}>
+                                            {exercise.difficulty.charAt(0).toUpperCase() + exercise.difficulty.slice(1)}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <ChevronRight size={24} color={theme.text.muted} />
+                            </View>
+                        </GlassCard>
+                    </TouchableOpacity>
+                ))}
+
+                {/* Info Section */}
+                <GlassCard style={styles.infoCard}>
+                    <Text style={[styles.infoTitle, { color: theme.text.primary }]}>
+                        How It Works
+                    </Text>
+                    <Text style={[styles.infoText, { color: theme.text.secondary }]}>
+                        1. Select an exercise{'\n'}
+                        2. Position yourself in frame{'\n'}
+                        3. Start your set{'\n'}
+                        4. Get real-time form feedback{'\n'}
+                        5. Save your workout session
+                    </Text>
+                </GlassCard>
+
+                {/* Debug Section */}
+                <Text style={[styles.sectionTitle, { color: theme.accent.secondary, marginTop: Spacing.lg }]}>
+                    Debug Tools
+                </Text>
+                <TouchableOpacity
+                    onPress={() => router.push('/hand-tracker')}
+                    activeOpacity={0.7}
+                >
+                    <GlassCard style={[styles.exerciseCard, { borderColor: theme.accent.orange + '40', borderWidth: 1 }]}>
+                        <View style={styles.exerciseContent}>
+                            <View style={[styles.iconContainer, { backgroundColor: theme.accent.orange + '20' }]}>
+                                <Hand size={32} color={theme.accent.orange} />
+                            </View>
+                            <View style={styles.exerciseInfo}>
+                                <Text style={[styles.exerciseName, { color: theme.text.primary }]}>
+                                    Hand Tracker Test
+                                </Text>
+                                <Text style={[styles.exerciseDescription, { color: theme.text.muted }]}>
+                                    Test hand pose detection (for debugging)
+                                </Text>
+                            </View>
+                            <ChevronRight size={24} color={theme.text.muted} />
+                        </View>
+                    </GlassCard>
+                </TouchableOpacity>
+
+                <View style={{ height: 120 }} />
+            </ScrollView>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    mainContainer: {
+    container: {
         flex: 1,
-        paddingBottom: 20,
     },
-    loadingContainer: {
+    scrollView: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
-    loadingText: {
-        ...Typography.body,
-        marginTop: Spacing.md,
+    scrollContent: {
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.lg,
     },
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: Spacing.lg,
-        paddingTop: 10,
-        paddingBottom: Spacing.md,
-    },
-    backButton: {
-        padding: 8,
-        borderRadius: BorderRadius.round,
+        marginBottom: Spacing.lg,
     },
     headerTitle: {
-        ...Typography.h2,
+        ...Typography.h1,
+        marginBottom: Spacing.xs,
     },
-    headerRight: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    iconButton: {
-        padding: Spacing.xs,
-    },
-    statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        paddingHorizontal: Spacing.lg,
-        borderBottomWidth: 1,
-        gap: Spacing.sm,
-    },
-    pulseDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-    },
-    statusText: {
-        ...Typography.caption,
-        fontWeight: '600',
-    },
-    cameraSection: {
-        flex: 1,
-        backgroundColor: '#000',
-        overflow: 'hidden',
-    },
-    webview: {
-        flex: 1,
-        backgroundColor: 'transparent',
-    },
-    statsOverlay: {
-        position: 'absolute',
-        top: Spacing.lg,
-        left: Spacing.lg,
-        right: Spacing.lg,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: Spacing.md,
-    },
-    statCard: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        gap: Spacing.md,
-        borderWidth: 1,
-    },
-    statLabel: {
-        ...Typography.caption,
-        fontWeight: '700',
-    },
-    statValue: {
-        ...Typography.h2,
-        fontSize: 24,
-    },
-    depthBarContainer: {
-        position: 'absolute',
-        right: Spacing.lg,
-        top: '20%',
-        bottom: '20%',
-        width: 12,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-    },
-    depthTrack: {
-        width: 8,
-        height: '100%',
-        borderRadius: 4,
-        overflow: 'hidden',
-    },
-    depthFill: {
-        width: '100%',
-        borderRadius: 4,
-    },
-    controls: {
-        padding: Spacing.lg,
-        paddingBottom: 120, // Clear tab bar explicitly
-        borderTopWidth: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    instruction: {
+    headerSubtitle: {
         ...Typography.body,
-        flex: 1,
+    },
+    statusCard: {
+        marginBottom: Spacing.lg,
+    },
+    statusContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    statusDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
         marginRight: Spacing.md,
     },
-    actionButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        paddingHorizontal: Spacing.md,
-        borderRadius: BorderRadius.lg,
-        gap: Spacing.xs,
-    },
-    actionText: {
-        ...Typography.body,
-        fontWeight: 'bold',
-        color: 'white',
-    },
-    alertContainer: {
-        position: 'absolute',
-        bottom: Spacing.xl,
-        left: Spacing.lg,
-        right: Spacing.lg,
-        borderRadius: BorderRadius.lg,
-        padding: Spacing.md,
-        flexDirection: 'row',
-        alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 6,
-        gap: Spacing.md,
-    },
-    alertIcon: {
-        borderRadius: BorderRadius.round,
-        padding: 8,
-    },
-    alertTitle: {
-        ...Typography.h3,
-        fontSize: 16,
-    },
-    alertText: {
-        ...Typography.body,
-        fontSize: 14,
-    },
-    searchInput: {
+    statusTextContainer: {
         flex: 1,
+    },
+    statusTitle: {
         ...Typography.body,
-        padding: 0,
+        fontWeight: '600',
+    },
+    statusSubtitle: {
+        ...Typography.caption,
+    },
+    sectionTitle: {
+        ...Typography.h3,
+        marginBottom: Spacing.md,
+    },
+    exerciseCard: {
+        marginBottom: Spacing.md,
+    },
+    exerciseContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    iconContainer: {
+        width: 56,
+        height: 56,
+        borderRadius: BorderRadius.lg,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: Spacing.md,
+    },
+    exerciseInfo: {
+        flex: 1,
+    },
+    exerciseName: {
+        ...Typography.h3,
+        fontSize: 18,
+        marginBottom: 2,
+    },
+    exerciseDescription: {
+        ...Typography.caption,
+        marginBottom: Spacing.xs,
+    },
+    difficultyBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: Spacing.sm,
+        paddingVertical: 2,
+        borderRadius: BorderRadius.sm,
+    },
+    difficultyText: {
+        ...Typography.small,
+        fontWeight: '600',
+    },
+    infoCard: {
+        marginTop: Spacing.md,
+    },
+    infoTitle: {
+        ...Typography.body,
+        fontWeight: '600',
+        marginBottom: Spacing.sm,
+    },
+    infoText: {
+        ...Typography.body,
+        lineHeight: 24,
     },
 });

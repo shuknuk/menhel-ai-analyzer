@@ -1,27 +1,31 @@
 import ExpoModulesCore
 import UIKit
 import AVFoundation
-import MediaPipeTasksVision
+import Vision
 
 class MediapipePoseView: ExpoView {
   private let previewLayer = AVCaptureVideoPreviewLayer()
   private let captureSession = AVCaptureSession()
   private let videoDataOutput = AVCaptureVideoDataOutput()
   private let videoQueue = DispatchQueue(label: "com.reboundai.videoQueue")
-  private var poseLandmarker: PoseLandmarker?
-  
-  // Squat logic
-  private var isSquatting = false
-  private var squatCount = 0
-  private var lastHipY: Float = 0.0
+
+  // Squat detection state machine
+  private var squatState: Int = 0  // 0=standing, 1=descending, 2=atBottom, 3=ascending
+  private var squatCount: Int = 0
+  private var lastHipY: CGFloat = 0
+  private var minHipY: CGFloat = 0
+
+  // Angle thresholds
+  private let HIP_MOVEMENT_THRESHOLD: CGFloat = 0.08  // ~8% of frame height movement
 
   // Events
   let onSquatCount = EventDispatcher()
+  let onSquatDepth = EventDispatcher()
+  let onFormCorrection = EventDispatcher()
 
   required init(appContext: AppContext? = nil) {
     super.init(appContext: appContext)
     setupCamera()
-    setupMediaPipe()
   }
 
   override func layoutSubviews() {
@@ -31,7 +35,7 @@ class MediapipePoseView: ExpoView {
 
   private func setupCamera() {
     captureSession.sessionPreset = .high
-    
+
     guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front),
           let input = try? AVCaptureDeviceInput(device: device) else {
       print("Error: Unable to access front camera")
@@ -44,9 +48,21 @@ class MediapipePoseView: ExpoView {
 
     videoDataOutput.setSampleBufferDelegate(self, queue: videoQueue)
     videoDataOutput.alwaysDiscardsLateVideoFrames = true
-    
+    videoDataOutput.videoSettings = [
+      kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+    ]
+
     if captureSession.canAddOutput(videoDataOutput) {
       captureSession.addOutput(videoDataOutput)
+    }
+
+    if let connection = videoDataOutput.connection(with: .video) {
+      if #available(iOS 17.0, *) {
+        connection.videoRotationAngle = 90
+      } else {
+        connection.videoOrientation = .portrait
+      }
+      connection.isVideoMirrored = true
     }
 
     previewLayer.session = captureSession
@@ -56,38 +72,105 @@ class MediapipePoseView: ExpoView {
     DispatchQueue.global(qos: .userInitiated).async {
       self.captureSession.startRunning()
     }
-    
-    // Start simulation timer
-    Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] _ in
-      guard let self = self else { return }
-      self.squatCount += 1
-      self.onSquatCount(["count": self.squatCount])
+  }
+
+  private func processPoseLandmarks(in pixelBuffer: CVPixelBuffer) {
+    let request = VNDetectHumanBodyPoseRequest { [weak self] request, error in
+      guard let self = self,
+            let observations = request.results as? [VNHumanBodyPoseObservation],
+            let observation = observations.first else {
+        return
+      }
+
+      do {
+        // Get hip and knee keypoints
+        let leftHip = try? observation.recognizedPoint(.leftHip)
+        let rightHip = try? observation.recognizedPoint(.rightHip)
+        let leftKnee = try? observation.recognizedPoint(.leftKnee)
+        let rightKnee = try? observation.recognizedPoint(.rightKnee)
+
+        // Use average hip position for stability
+        guard let lHip = leftHip, let rHip = rightHip else { return }
+        let avgHipY = (lHip.location.y + rHip.location.y) / 2
+
+        let hipY = avgHipY
+
+        // Calculate depth (how low hips have gone)
+        let depth: Int
+        if self.lastHipY == 0 {
+          self.lastHipY = hipY
+          depth = 0
+        } else {
+          let movement = self.lastHipY - hipY  // Positive = hips went down (smaller Y = lower in image)
+          depth = Int(min(100, max(0, (movement / self.HIP_MOVEMENT_THRESHOLD) * 50)))
+
+          self.processSquatState(hipY: hipY, depth: depth)
+        }
+
+        DispatchQueue.main.async {
+          self.onSquatDepth(["depth": depth, "angle": Float(depth)])
+        }
+
+      } catch {
+        print("Error processing pose: \(error)")
+      }
+    }
+
+    let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
+    do {
+      try handler.perform([request])
+    } catch {
+      print("Vision error: \(error)")
     }
   }
 
-  private func setupMediaPipe() {
-    // Ideally, we load the model from bundle.
-    // let modelPath = Bundle.main.path(forResource: "pose_landmarker", ofType: "task")
-    // ... setup PoseLandmarker with options
+  private func processSquatState(hipY: CGFloat, depth: Int) {
+    switch squatState {
+    case 0: // Standing
+      if depth > 30 {  // Started descending
+        squatState = 1
+        minHipY = hipY
+      }
+
+    case 1: // Descending
+      if hipY < minHipY {
+        minHipY = hipY
+      }
+      if depth > 80 {  // Reached bottom
+        squatState = 2
+      }
+
+    case 2: // At bottom
+      if hipY < minHipY {
+        minHipY = hipY
+      }
+      if depth < 70 {  // Started ascending
+        squatState = 3
+      }
+
+    case 3: // Ascending
+      if depth < 20 {  // Back to standing
+        squatCount += 1
+        onSquatCount(["count": squatCount])
+        squatState = 0
+        minHipY = hipY
+      }
+
+    default:
+      squatState = 0
+    }
+
+    lastHipY = hipY
   }
+
   func setCameraPosition(_ position: String) {
-    // Implement camera switching logic in the future
+    // Future: switch front/back camera
   }
 }
 
 extension MediapipePoseView: AVCaptureVideoDataOutputSampleBufferDelegate {
   func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-    // Suppress unused warning by binding to underscore if not used, or just keeping it for now but suppressing warning
-    guard let _ = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-    
-    // Convert pixelBuffer to MPImage
-    // let image = MPImage(pixelBuffer: pixelBuffer)
-    
-    // Detect pose
-    // try? poseLandmarker?.detect(image: image)
-    
-    // For now, simulate squat counting every 5 seconds for testing UI
-    // In real implementation, this logic is triggered by pose landmarks
-    // self.onSquatCount(["count": self.squatCount])
+    guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+    processPoseLandmarks(in: pixelBuffer)
   }
 }

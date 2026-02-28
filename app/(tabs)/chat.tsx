@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, SafeAreaView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Send, Sparkles } from 'lucide-react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ChatBubble } from '../../components/ChatBubble';
 import { Typography, Spacing, BorderRadius } from '../../constants/theme';
 import { useTheme } from '../../hooks/useTheme';
@@ -22,14 +21,13 @@ export default function ChatScreen() {
     const [inputText, setInputText] = useState('');
     const flatListRef = useRef<FlatList>(null);
 
-    const dynamicStyles = StyleSheet.create({
+    const dynamicStyles = {
         container: {
             backgroundColor: theme.background.primary,
         },
         header: {
             borderBottomColor: theme.background.tertiary,
             backgroundColor: theme.background.secondary,
-            paddingTop: 60, // Account for notch
         },
         title: {
             color: theme.text.primary,
@@ -44,7 +42,7 @@ export default function ChatScreen() {
             backgroundColor: theme.background.primary,
             color: theme.text.primary,
         },
-    });
+    };
 
     const handleSend = () => {
         if (!inputText.trim()) return;

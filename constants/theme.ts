@@ -46,6 +46,7 @@ export const DarkColors = {
     accent: {
         primary: '#D9ED92', // Brighter lime-green for high contrast
         secondary: '#B5C99A', // Muted sage
+        tertiary: '#7A8B5C', // Muted olive
         teal: '#97A97C', // Olive
         orange: '#FFD449', // High-vis gold/orange
         red: '#FF6B6B',
